@@ -46,7 +46,7 @@ void RecivedFunction(vector<sf::TcpSocket*> socket, vector<string>* aMensajes, s
 				{
 					msn = buffer;
 					aMensajes->push_back(msn);
-					if (aMensajes->size() > 25)
+					if (aMensajes->size() > 9)
 					{
 						aMensajes->erase(aMensajes->begin(), aMensajes->begin() + 1);
 					}
@@ -156,10 +156,10 @@ int main()
 	listener.close();
 	std::vector<std::string> aMensajes;
 
-	sf::Vector2i screenDimensions(800, 600);
+	sf::Vector2i screenDimensions(800, 800);
 
 	sf::RenderWindow window;
-	window.create(sf::VideoMode(screenDimensions.x, screenDimensions.y), "Chat");
+	window.create(sf::VideoMode(screenDimensions.x, screenDimensions.y), "Gold'en Texas Poker");
 
 	sf::Font font;
 	if (!font.loadFromFile("Roboto-Bold.ttf"))
@@ -177,13 +177,24 @@ int main()
 	sf::Text text(mensaje, font, 24);
 	text.setFillColor(sf::Color(0, 160, 0));
 	text.setStyle(sf::Text::Bold);
-	text.setPosition(0, 560);
+	text.setPosition(0, 760);
 
 	sf::RectangleShape separator(sf::Vector2f(800, 5));
 	separator.setFillColor(sf::Color(200, 200, 200, 255));
 	separator.setPosition(0, 550);
 
+	sf::RectangleShape separator2(sf::Vector2f(800, 5));
+	separator2.setFillColor(sf::Color(200, 200, 200, 255));
+	separator2.setPosition(0, 750);
+
 	string msn;
+
+	//OBTENER BACKGROUND
+	sf::Texture texture;
+	if (!texture.loadFromFile("./img/Tauler.png"))
+		return EXIT_FAILURE;
+	sf::Sprite sprite(texture);
+	sprite.scale(sf::Vector2f(1, 0.915));
 
 	//Lanzamos un Thread para recivir mensajes
 	thread t(RecivedFunction,socketList, &aMensajes, &ss);
@@ -204,7 +215,7 @@ int main()
 				else if (evento.key.code == sf::Keyboard::Return)
 				{
 					aMensajes.push_back(mensaje);
-					if (aMensajes.size() > 25)
+					if (aMensajes.size() > 9)
 					{
 						aMensajes.erase(aMensajes.begin(), aMensajes.begin() + 1);
 					}
@@ -240,13 +251,14 @@ int main()
 		for (size_t i = 0; i < aMensajes.size(); i++)
 		{
 			std::string chatting = aMensajes[i];
-			chattingText.setPosition(sf::Vector2f(0, 20 * i));
+			chattingText.setPosition(sf::Vector2f(0, (20 * i)+550));
 			chattingText.setString(chatting);
 			window.draw(chattingText);
 		}
 		std::string mensaje_ = mensaje + "_";
 		text.setString(mensaje_);
 		window.draw(text);
+		window.draw(sprite);
 
 
 		window.display();

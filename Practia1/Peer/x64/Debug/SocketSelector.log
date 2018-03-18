@@ -1,6 +1,6 @@
 ﻿  main.cpp
 c:\users\alumne\desktop\practiquesprogramacioxarxes\practia1\peer\main.cpp(143): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-c:\users\alumne\desktop\practiquesprogramacioxarxes\practia1\peer\main.cpp(243): warning C4244: 'argument': conversion from '::size_t' to 'float', possible loss of data
+c:\users\alumne\desktop\practiquesprogramacioxarxes\practia1\peer\main.cpp(247): warning C4244: 'argument': conversion from '::size_t' to 'float', possible loss of data
 c:\users\alumne\desktop\practiquesprogramacioxarxes\practia1\peer\main.cpp(68): warning C4101: 'recived': unreferenced local variable
 c:\users\alumne\desktop\practiquesprogramacioxarxes\practia1\peer\main.cpp(66): warning C4101: 'connectionType': unreferenced local variable
 c:\users\alumne\desktop\practiquesprogramacioxarxes\practia1\peer\main.cpp(68): warning C4101: 'sended': unreferenced local variable
