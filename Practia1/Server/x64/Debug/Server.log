@@ -1,2 +1,11 @@
 ﻿  main.cpp
+c:\users\alumne\desktop\practiquesprogramacioxarxes\practia1\client\game.h(26): warning C4305: 'argument': truncation from 'double' to 'float'
+  Game.cpp
+c:\users\alumne\desktop\practiquesprogramacioxarxes\practia1\client\game.h(26): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\alumne\desktop\practiquesprogramacioxarxes\practia1\client\game.cpp(29): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\alumne\desktop\practiquesprogramacioxarxes\practia1\client\game.cpp(88): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\alumne\desktop\practiquesprogramacioxarxes\practia1\client\game.cpp(96): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\alumne\desktop\practiquesprogramacioxarxes\practia1\client\game.cpp(104): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\alumne\desktop\practiquesprogramacioxarxes\practia1\client\game.cpp(112): warning C4305: 'argument': truncation from 'double' to 'float'
+  Generating Code...
   Server.vcxproj -> C:\Users\alumne\Desktop\PractiquesProgramacioXarxes\Practia1\x64\Debug\Server.exe

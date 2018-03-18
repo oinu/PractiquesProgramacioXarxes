@@ -14,6 +14,8 @@
 
 using namespace std;
 std::mutex mu;
+bool turno = true;
+Game game;
 
 //Escucha por un socket determinado y escribe el mensaje llegado.
 //socket: Es el socket al cual debemos escuchar.
@@ -24,17 +26,71 @@ void RecivedFunction(sf::TcpSocket* socket,size_t* recived, vector<string>* aMen
 	while (window->isOpen())
 	{
 		char buffer[BUFFER_SIZE];
+		int codigo;
+		int cantidad;
+		string s;
 		sf::Socket::Status status = socket->receive(buffer, sizeof(buffer), *recived);
-		string s = buffer;
+		
 		if (status == sf::Socket::Status::Done)
 		{
-			mu.lock();
-			aMensajes->push_back(s);
-			if (aMensajes->size() > 9)
+			s = buffer;
+			codigo = atoi(&s[0]);
+			s.erase(s.begin(), s.begin() + 1);
+			if(codigo==6)cout << "Total en mesa: " + to_string(game.efectivoMesa) << endl;
+			switch (codigo)
 			{
-				aMensajes->erase(aMensajes->begin(), aMensajes->begin() + 1);
+			case 0:
+				mu.lock();
+				aMensajes->push_back(s);
+				if (aMensajes->size() > 9)
+				{
+					aMensajes->erase(aMensajes->begin(), aMensajes->begin() + 1);
+				}
+				mu.unlock();
+				break;
+			case 4:
+				//ES EL PRIMERO
+				if (s.size() > 0)
+				{
+					mu.lock();
+					aMensajes->push_back(s);
+					if (aMensajes->size() > 9)
+					{
+						aMensajes->erase(aMensajes->begin(), aMensajes->begin() + 1);
+					}
+					mu.unlock();
+				}
+				turno = true;
+				break;
+			case 5:
+				turno = true;
+				break;
+			
+			//CONFIRMA SUBE APUESTA
+			case 6:
+				cantidad = stoi(s);
+				//cout << to_string(cantidad )<< endl;
+				/*game.listPlayers[0].efectivo -= cantidad;
+				game.apuestaActual += 10;
+				game.efectivoMesa += cantidad;
+				turno = false;*/
+				break;
+			//CONFIRMA IGUALA
+			case 7:
+				cantidad = stoi(s);
+				//cout << to_string(cantidad )<< endl;
+				/*game.listPlayers[0].efectivo -= cantidad;
+				game.efectivoMesa += cantidad;
+				turno = false;*/
+				break;
+			//CONFIRMA DESCARTE
+			case 8:
+				turno = false;
+				break;
+			default:
+				break;
 			}
-			mu.unlock();
+
 		}
 	}
 	
@@ -87,7 +143,6 @@ int main()
 	string msn;
 
 	//EL JUEGO
-	Game game;
 	game.InitClient(font);
 	
 	//RECIVE
@@ -97,6 +152,7 @@ int main()
 	while (window.isOpen())
 	{
 		sf::Event evento;
+		sf::Vector2i mousePosition;
 		while (window.pollEvent(evento))
 		{
 			switch (evento.type)
@@ -111,7 +167,7 @@ int main()
 				{
 					// SEND
 					// Pasamos el mensaje a std::string para hacerlo mas facil en el momento de enviarlo.
-					msn = mensaje;
+					msn = std::to_string(0)+mensaje;
 					socketStatus =socket.send(msn.c_str(), msn.size() + 1);
 					if (socketStatus == sf::TcpSocket::Status::Disconnected)
 					{
@@ -122,8 +178,76 @@ int main()
 							aMensajes.erase(aMensajes.begin(), aMensajes.begin() + 1);
 						}
 					}
-
 					mensaje = ">";
+				}
+				break;
+			case sf::Event::MouseButtonPressed:
+				mousePosition = sf::Mouse::getPosition();
+				if (turno)
+				{
+
+					//DESCARTAR MANO
+					if (mousePosition.x > 760 && mousePosition.x < 880 && mousePosition.y > 680 && mousePosition.y < 715)
+					{
+						msn = std::to_string(3);
+						cout << "DESCARTA" << endl;
+						socketStatus = socket.send(msn.c_str(), msn.size() + 1);
+						turno = false;
+						if (socketStatus == sf::TcpSocket::Status::Disconnected)
+						{
+							msn = "Server Disconnected";
+							aMensajes.push_back(msn);
+							if (aMensajes.size() > 9)
+							{
+								aMensajes.erase(aMensajes.begin(), aMensajes.begin() + 1);
+							}
+						}
+					}
+					//IGUALAR APUESTA
+					else if (mousePosition.x > 760 && mousePosition.x < 880 && mousePosition.y > 640 && mousePosition.y < 675)
+					{
+						msn = std::to_string(2);
+						cout << "IGUALA APUESTA" << endl;
+						socketStatus = socket.send(msn.c_str(), msn.size() + 1);
+						
+						//cambio en local
+						game.listPlayers[0].efectivo -= game.apuestaActual;
+						game.efectivoMesa += game.apuestaActual;
+						turno = false;
+
+						if (socketStatus == sf::TcpSocket::Status::Disconnected)
+						{
+							msn = "Server Disconnected";
+							aMensajes.push_back(msn);
+							if (aMensajes.size() > 9)
+							{
+								aMensajes.erase(aMensajes.begin(), aMensajes.begin() + 1);
+							}
+						}
+					}
+					//SUBIR APUESTA
+					else if (mousePosition.x > 760 && mousePosition.x < 880 && mousePosition.y > 590 && mousePosition.y < 635)
+					{
+						msn = std::to_string(1);
+						cout << "SUBE APUESTA" << endl;
+						socketStatus = socket.send(msn.c_str(), msn.size() + 1);
+
+						//Cambiar copia en local
+						game.apuestaActual += 10;
+						game.listPlayers[0].efectivo -= game.apuestaActual;
+						game.efectivoMesa += game.apuestaActual;
+						turno = false;
+
+						if (socketStatus == sf::TcpSocket::Status::Disconnected)
+						{
+							msn = "Server Disconnected";
+							aMensajes.push_back(msn);
+							if (aMensajes.size() > 9)
+							{
+								aMensajes.erase(aMensajes.begin(), aMensajes.begin() + 1);
+							}
+						}
+					}
 				}
 				break;
 			case sf::Event::TextEntered:

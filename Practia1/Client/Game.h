@@ -71,6 +71,13 @@ public:
 	sf::Font font;
 	sf::Text* txt;
 
+	sf::Texture raiseButtonText;
+	sf::Sprite raiseButton;
+	sf::Texture callButtonText;
+	sf::Sprite callButton;
+	sf::Texture foldbuttonText;
+	sf::Sprite foldButton;
+
 	int efectivoMesa;
 	int apuestaActual;
 	Game();

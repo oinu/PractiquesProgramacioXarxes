@@ -1,8 +1,9 @@
 ﻿  main.cpp
-c:\users\alumne\desktop\practiquesprogramacioxarxes\practia1\peer\main.cpp(143): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-c:\users\alumne\desktop\practiquesprogramacioxarxes\practia1\peer\main.cpp(247): warning C4244: 'argument': conversion from '::size_t' to 'float', possible loss of data
-c:\users\alumne\desktop\practiquesprogramacioxarxes\practia1\peer\main.cpp(68): warning C4101: 'recived': unreferenced local variable
-c:\users\alumne\desktop\practiquesprogramacioxarxes\practia1\peer\main.cpp(66): warning C4101: 'connectionType': unreferenced local variable
-c:\users\alumne\desktop\practiquesprogramacioxarxes\practia1\peer\main.cpp(68): warning C4101: 'sended': unreferenced local variable
-c:\users\alumne\desktop\practiquesprogramacioxarxes\practia1\peer\main.cpp(67): warning C4101: 'buffer': unreferenced local variable
+c:\users\alumne\desktop\practiquesprogramacioxarxes\practia1\client\game.h(26): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\alumne\desktop\practiquesprogramacioxarxes\practia1\peer\main.cpp(145): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+c:\users\alumne\desktop\practiquesprogramacioxarxes\practia1\peer\main.cpp(250): warning C4244: 'argument': conversion from '::size_t' to 'float', possible loss of data
+c:\users\alumne\desktop\practiquesprogramacioxarxes\practia1\peer\main.cpp(70): warning C4101: 'recived': unreferenced local variable
+c:\users\alumne\desktop\practiquesprogramacioxarxes\practia1\peer\main.cpp(68): warning C4101: 'connectionType': unreferenced local variable
+c:\users\alumne\desktop\practiquesprogramacioxarxes\practia1\peer\main.cpp(70): warning C4101: 'sended': unreferenced local variable
+c:\users\alumne\desktop\practiquesprogramacioxarxes\practia1\peer\main.cpp(69): warning C4101: 'buffer': unreferenced local variable
   SocketSelector.vcxproj -> C:\Users\alumne\Desktop\PractiquesProgramacioXarxes\Practia1\x64\Debug\Peer.exe

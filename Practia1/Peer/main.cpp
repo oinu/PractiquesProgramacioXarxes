@@ -5,6 +5,7 @@
 #include <vector>
 #include <thread>
 #include <mutex>
+#include "../Client/Game.h"
 
 #define MAX_MENSAJES 30
 #define SERVER_PORT 50000
@@ -13,6 +14,7 @@
 
 
 using namespace std;
+Game game;
 
 struct Direccion
 {
@@ -167,6 +169,7 @@ int main()
 		std::cout << "Can't load the font file" << std::endl;
 	}
 
+	game.InitClient(font);
 	sf::String mensaje = " >";
 
 	sf::Text chattingText(mensaje, font, 24);
@@ -188,13 +191,6 @@ int main()
 	separator2.setPosition(0, 750);
 
 	string msn;
-
-	//OBTENER BACKGROUND
-	sf::Texture texture;
-	if (!texture.loadFromFile("./img/Tauler.png"))
-		return EXIT_FAILURE;
-	sf::Sprite sprite(texture);
-	sprite.scale(sf::Vector2f(1, 0.915));
 
 	//Lanzamos un Thread para recivir mensajes
 	thread t(RecivedFunction,socketList, &aMensajes, &ss);
@@ -258,7 +254,7 @@ int main()
 		std::string mensaje_ = mensaje + "_";
 		text.setString(mensaje_);
 		window.draw(text);
-		window.draw(sprite);
+		game.DrawScene(&window);
 
 
 		window.display();

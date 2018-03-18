@@ -53,6 +53,11 @@ void Game::DrawScene(sf::RenderWindow* window)
 		window->draw(cartasTablero[i].img);
 	}
 
+	//PINTAR BOTONES
+	window->draw(raiseButton);
+	window->draw(callButton);
+	window->draw(foldButton);
+
 	//PINTAR TEXTO TOTAL MESA
 	total = "TOTAL EN MESA: "+ std::to_string(efectivoMesa)+"	APUESTA ACTUAL: " + std::to_string(apuestaActual);
 	txt->setString(total);
@@ -81,4 +86,28 @@ void Game::InitClient(sf::Font aFont)
 	}
 	tablero = (sf::Sprite)texture;
 	tablero.scale(sf::Vector2f(1, 0.915));
+
+	if (!raiseButtonText.loadFromFile("./img/Raise.png"))
+	{
+		std::cout << "Error cargar imagen" << std::endl;
+	}
+	raiseButton = (sf::Sprite)raiseButtonText;
+	raiseButton.setPosition(190, 420);
+	raiseButton.scale(sf::Vector2f(0.2, 0.2));
+
+	if (!callButtonText.loadFromFile("./img/Call.png"))
+	{
+		std::cout << "Error cargar imagen" << std::endl;
+	}
+	callButton = (sf::Sprite)callButtonText;
+	callButton.setPosition(190, 460);
+	callButton.scale(sf::Vector2f(0.2, 0.2));
+
+	if (!foldbuttonText.loadFromFile("./img/Fold.png"))
+	{
+		std::cout << "Error cargar imagen" << std::endl;
+	}
+	foldButton = (sf::Sprite)foldbuttonText;
+	foldButton.setPosition(190, 500);
+	foldButton.scale(sf::Vector2f(0.2, 0.2));
 }
