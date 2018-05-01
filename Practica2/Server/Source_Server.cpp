@@ -12,7 +12,7 @@ struct Player
 };
 enum Code
 {
-	XMOVE,YMOVE,NEWPLAYER,ACK_NEWPLAYER
+	XMOVE,YMOVE,HELLO,WELLCOME
 };
 
 int main()
@@ -60,7 +60,7 @@ int main()
 							players[index].x = pos;
 							std::cout << "Se confirma la x pos " << players[index].x << players[index].name << std::endl;
 							sf::Packet pckSend;
-							pckSend << 0 << pos;
+							pckSend << XMOVE << pos;
 							sock.send(pck, players[index].ip, players[index].port);
 						}
 
@@ -81,7 +81,7 @@ int main()
 							players[index].y = pos;
 							std::cout << "Se confirma la y pos " << players[index].y <<players[index].name<< std::endl;
 							sf::Packet pckSend;
-							pckSend << 1 << players[index].y;
+							pckSend << YMOVE << players[index].y;
 							sock.send(pck, players[index].ip, players[index].port);
 						}
 
@@ -93,7 +93,7 @@ int main()
 							sock.send(pckSend, players[index].ip, players[index].port);
 						}
 						break;
-					case Code::NEWPLAYER:
+					case Code::HELLO:
 						if (index == -1)
 						{
 							player.ip = p.ip;
@@ -102,7 +102,7 @@ int main()
 							players.push_back(player);
 							sf::Packet sendPck;
 							int size= players.size();
-							sendPck << Code::ACK_NEWPLAYER << size;
+							sendPck << Code::WELLCOME << size;
 							sock.send(sendPck, player.ip, player.port);
 						}
 						break;

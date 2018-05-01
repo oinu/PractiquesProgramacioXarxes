@@ -16,7 +16,7 @@ struct Player
 };
 enum Code
 {
-	XMOVE, YMOVE, NEWPLAYER, ACK_NEWPLAYER
+	XMOVE, YMOVE, HELLO, WELLCOME
 };
 
 Player p1,p2,p3,p4;
@@ -47,7 +47,7 @@ void DibujaSFML()
 	std::cout << "Username:	";
 	std::string name;
 	std::cin >> name;
-	pck << Code::NEWPLAYER << name;
+	pck << Code::HELLO << name;
 	sock.send(pck, IP_SERVER, PORT_SERVER);
 	bool respostaServidor=false;
 	while (!respostaServidor)
@@ -57,7 +57,7 @@ void DibujaSFML()
 		{
 			int id, num;
 			pck >> id >> num;
-			if (id == ACK_NEWPLAYER)
+			if (id == WELLCOME)
 			{
 				switch (num)
 				{
@@ -118,7 +118,7 @@ void DibujaSFML()
 				{
 					sf::Packet pckRight;
 					localPlayer->x+=speed;
-					pckRight << 0 << p1.x;
+					pckRight << 0 << localPlayer->x;
 					sock.send(pckRight, IP_SERVER, PORT_SERVER);
 				}
 				else if (event.key.code == sf::Keyboard::Up)
@@ -148,21 +148,22 @@ void DibujaSFML()
 		{
 			int id,pos;
 			pck >> id;
-			if (id == -1)
+			switch (id)
 			{
-				p1.x = p1.previusX;
-				p1.y = p1.previusY;
-				std::cout << "No valid position" << std::endl;
-			}
-			else if(id==0)
-			{
+			case -1:
+				localPlayer->x = localPlayer->previusX;
+				localPlayer->y = localPlayer->previusY;
+				break;
+			case XMOVE:
 				pck >> pos;
-				p1.previusX = pos;
-			}
-			else if (id == 1)
-			{
+				localPlayer->previusX = pos;
+				break;
+			case YMOVE:
 				pck >> pos;
-				p1.previusY = pos;
+				localPlayer->previusY = pos;
+				break;
+			default:
+				break;
 			}
 		}
 
