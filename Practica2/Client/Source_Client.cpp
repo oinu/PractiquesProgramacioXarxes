@@ -16,8 +16,9 @@ struct Player
 };
 enum Code
 {
-	XMOVE, YMOVE, HELLO, WELLCOME
+	XMOVE, YMOVE, HELLO, WELLCOME, XPLAYER1, YPLAYER1, XPLAYER2, YPLAYER2, XPLAYER3, YPLAYER3, XPLAYER4, YPLAYER4, ASK, AOPTION, BOPTION, COPTION, DOPTION
 };
+
 
 Player p1,p2,p3,p4;
 Player *localPlayer;
@@ -91,12 +92,6 @@ void DibujaSFML()
 	while (window.isOpen())
 	{
 		sf::Event event;
-		pregunta = "Ets un nen petit?";
-		a = "Caca";
-		b = "Cul";
-		c = "Pet";
-		d = "Pis";
-
 		//Este primer WHILE es para controlar los eventos del mouse
 		while (window.pollEvent(event))
 		{
@@ -161,6 +156,61 @@ void DibujaSFML()
 			case YMOVE:
 				pck >> pos;
 				localPlayer->previusY = pos;
+				break;
+			case XPLAYER1:
+				pck >> pos;
+				std::cout << "xPlayer1" << std::endl;
+				p1.x = pos;
+				break;
+			case YPLAYER1:
+				pck >> pos;
+				std::cout << "yPlayer1" << std::endl;
+				p1.y = pos;
+				break;
+			case XPLAYER2:
+				pck >> pos;
+				std::cout << "xPlayer2" << std::endl;
+				p2.x = pos;
+				break;
+			case YPLAYER2:
+				pck >> pos;
+				std::cout << "yPlayer2" << std::endl;
+				p2.y = pos;
+				break;
+			case XPLAYER3:
+				pck >> pos;
+				std::cout << "xPlayer3" << std::endl;
+				p3.x = pos;
+				break;
+			case YPLAYER3:
+				pck >> pos;
+				std::cout << "yPlayer3" << std::endl;
+				p3.y = pos;
+				break;
+			case XPLAYER4:
+				pck >> pos;
+				std::cout << "xPlayer4" << std::endl;
+				p4.x = pos;
+				break;
+			case YPLAYER4:
+				pck >> pos;
+				std::cout << "yPlayer4" << std::endl;
+				p4.y = pos;
+				break;
+			case ASK:
+				pck >> pregunta;
+				break;
+			case AOPTION:
+				pck >> a;
+				break;
+			case BOPTION:
+				pck >> b;
+				break;
+			case COPTION:
+				pck >> c;
+				break;
+			case DOPTION:
+				pck >> d;
 				break;
 			default:
 				break;
