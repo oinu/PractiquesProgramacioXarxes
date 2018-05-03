@@ -10,6 +10,7 @@ struct Player
 	int x;
 	int y;
 };
+
 enum Code
 {
 	XMOVE, YMOVE, HELLO, WELLCOME, XPLAYER1, YPLAYER1, XPLAYER2, YPLAYER2, XPLAYER3, YPLAYER3, XPLAYER4, YPLAYER4, ASK, AOPTION, BOPTION, COPTION, DOPTION
@@ -35,7 +36,7 @@ int main()
 		if (clock.getElapsedTime().asMilliseconds() > 200)
 		{
 			sf::Packet pck;
-			if (players.size() == 4 && newGame)
+			if (players.size() >= 2 && newGame)
 			{
 				pck << ASK << "Hola pol!!!!";
 				for (int i = 0; i < 4; i++)
@@ -207,7 +208,7 @@ int main()
 						break;
 
 					case Code::HELLO:
-						if (index == -1)
+						if (index == -1 && players.size()<4)
 						{
 							player.ip = p.ip;
 							player.port = p.port;
