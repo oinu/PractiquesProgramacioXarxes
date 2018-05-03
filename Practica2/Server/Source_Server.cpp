@@ -1,6 +1,7 @@
 
 #include <SFML\Network.hpp>
 #include <iostream>
+#include <time.h>
 
 struct Player
 {
@@ -9,6 +10,15 @@ struct Player
 	std::string name;
 	int x;
 	int y;
+};
+
+struct Game
+{
+	std::string pregunta;
+	std::string a;
+	std::string b;
+	std::string c;
+	std::string d;
 };
 
 enum Code
@@ -23,6 +33,8 @@ int main()
 	std::vector<Player> players;
 	Player p;
 	int index=-1;
+	int preguntaActual=0;
+	//float currentTime;
 	bool newGame = true;
 	if (status != sf::Socket::Done)
 	{
@@ -30,44 +42,77 @@ int main()
 		system("pause");
 		exit(0);
 	}
+
+	Game g[5];
+
+	g[0].pregunta = "";
+	g[0].a = "";
+	g[0].b = "";
+	g[0].c = "";
+	g[0].d = "";
+
+	g[1].pregunta = "";
+	g[1].a = "";
+	g[1].b = "";
+	g[1].c = "";
+	g[1].d = "";
+
+	g[2].pregunta = "";
+	g[2].a = "";
+	g[2].b = "";
+	g[2].c = "";
+	g[2].d = "";
+
+	g[3].pregunta = "";
+	g[3].a = "";
+	g[3].b = "";
+	g[3].c = "";
+	g[3].d = "";
+
+	g[4].pregunta = "";
+	g[4].a = "";
+	g[4].b = "";
+	g[4].c = "";
+	g[4].d = "";
+
 	sf::Clock clock;
 	do
 	{
 		if (clock.getElapsedTime().asMilliseconds() > 200)
 		{
 			sf::Packet pck;
-			if (players.size() >= 2 && newGame)
+			if (players.size() == 4 && newGame)
 			{
-				pck << ASK << "Hola pol!!!!";
-				for (int i = 0; i < 4; i++)
+				pck << ASK << g[preguntaActual].pregunta;
+				for (int i = 0; i < players.size(); i++)
 				{
 					sock.send(pck, players[i].ip, players[i].port);
 				}
 				pck.clear();
 
-				pck << AOPTION << "OpcioA";
-				for (int i = 0; i < 4; i++)
+				pck << AOPTION << g[preguntaActual].a;
+				for (int i = 0; i < players.size(); i++)
 				{
 					sock.send(pck, players[i].ip, players[i].port);
 				}
 				pck.clear();
 
-				pck << BOPTION << "OpcioB";
-				for (int i = 0; i < 4; i++)
+				pck << BOPTION << g[preguntaActual].b;
+				for (int i = 0; i < players.size(); i++)
 				{
 					sock.send(pck, players[i].ip, players[i].port);
 				}
 				pck.clear();
 
-				pck << COPTION << "OpcioC";
-				for (int i = 0; i < 4; i++)
+				pck << COPTION << g[preguntaActual].c;
+				for (int i = 0; i < players.size(); i++)
 				{
 					sock.send(pck, players[i].ip, players[i].port);
 				}
 				pck.clear();
 
-				pck << DOPTION << "OpcioD";
-				for (int i = 0; i < 4; i++)
+				pck << DOPTION << g[preguntaActual].d;
+				for (int i = 0; i < players.size(); i++)
 				{
 					sock.send(pck, players[i].ip, players[i].port);
 				}
@@ -111,7 +156,6 @@ int main()
 								//Evitamos mandar al mismo jugador
 								if (index != i)
 								{
-									//std::cout << i << std::endl;
 									//Si el jugado es....
 									switch (index)
 									{
@@ -157,7 +201,6 @@ int main()
 						if (pos >= 200 && pos + 30 <= 500)
 						{
 							players[index].y = pos;
-							//std::cout << "Se confirma la y pos " << players[index].y <<players[index].name<< std::endl;
 							sf::Packet pckSend;
 							pckSend << YMOVE << players[index].y;
 							sock.send(pckSend, players[index].ip, players[index].port);

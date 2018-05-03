@@ -159,42 +159,34 @@ void DibujaSFML()
 				break;
 			case XPLAYER1:
 				pck >> pos;
-				std::cout << "xPlayer1" << std::endl;
 				p1.x = pos;
 				break;
 			case YPLAYER1:
 				pck >> pos;
-				std::cout << "yPlayer1" << std::endl;
 				p1.y = pos;
 				break;
 			case XPLAYER2:
 				pck >> pos;
-				std::cout << "xPlayer2" << std::endl;
 				p2.x = pos;
 				break;
 			case YPLAYER2:
 				pck >> pos;
-				std::cout << "yPlayer2" << std::endl;
 				p2.y = pos;
 				break;
 			case XPLAYER3:
 				pck >> pos;
-				std::cout << "xPlayer3" << std::endl;
 				p3.x = pos;
 				break;
 			case YPLAYER3:
 				pck >> pos;
-				std::cout << "yPlayer3" << std::endl;
 				p3.y = pos;
 				break;
 			case XPLAYER4:
 				pck >> pos;
-				std::cout << "xPlayer4" << std::endl;
 				p4.x = pos;
 				break;
 			case YPLAYER4:
 				pck >> pos;
-				std::cout << "yPlayer4" << std::endl;
 				p4.y = pos;
 				break;
 			case ASK:

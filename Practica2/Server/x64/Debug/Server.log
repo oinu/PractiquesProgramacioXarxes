@@ -1,4 +1,4 @@
 ﻿  Source_Server.cpp
-c:\users\esalles\desktop\practiquesprogramacioxarxes\practica2\server\source_server.cpp(217): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+c:\users\esalles\desktop\practiquesprogramacioxarxes\practica2\server\source_server.cpp(232): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
   Server.vcxproj -> C:\Users\esalles\Desktop\PractiquesProgramacioXarxes\Practica2\x64\Debug\Server.exe
   Server.vcxproj -> C:\Users\esalles\Desktop\PractiquesProgramacioXarxes\Practica2\x64\Debug\Server.pdb (Partial PDB)
