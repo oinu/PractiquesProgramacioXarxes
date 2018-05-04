@@ -16,7 +16,8 @@ struct Player
 };
 enum Code
 {
-	XMOVE, YMOVE, HELLO, WELLCOME, XPLAYER1, YPLAYER1, XPLAYER2, YPLAYER2, XPLAYER3, YPLAYER3, XPLAYER4, YPLAYER4, ASK, AOPTION, BOPTION, COPTION, DOPTION
+	XMOVE, YMOVE, HELLO, WELLCOME, XPLAYER1, YPLAYER1, XPLAYER2, YPLAYER2, XPLAYER3, YPLAYER3, XPLAYER4, YPLAYER4,
+	ASK, PLAYERSNAME, STARTTIME, ENDTIME
 };
 
 
@@ -33,6 +34,9 @@ std::string pregunta,a,b,c,d;
 sf::UdpSocket sock;
 sf::IpAddress ipRem;
 unsigned short portRem;
+
+int currentTime;
+sf::Clock timer;
 
 void DibujaSFML()
 {
@@ -137,7 +141,13 @@ void DibujaSFML()
 
 			}
 		}
-		
+
+		if (timer.getElapsedTime().asSeconds() >= 1)
+		{
+			currentTime--;
+			timer.restart();
+		}
+
 		sf::Socket::Status status = sock.receive(pck, ipRem, portRem);
 		if (status == sf::Socket::Done)
 		{
@@ -190,19 +200,16 @@ void DibujaSFML()
 				p4.y = pos;
 				break;
 			case ASK:
-				pck >> pregunta;
+				pck >> pregunta>>a>>b>>c>>d;
 				break;
-			case AOPTION:
-				pck >> a;
+			case PLAYERSNAME:
+				pck >> p1.name >> p2.name >> p3.name >> p4.name;
 				break;
-			case BOPTION:
-				pck >> b;
+			case STARTTIME:
+				pck >> currentTime;
 				break;
-			case COPTION:
-				pck >> c;
-				break;
-			case DOPTION:
-				pck >> d;
+			case ENDTIME:
+				pck >> p1.points>>p2.points>>p3.points>>p4.points;
 				break;
 			default:
 				break;
@@ -238,7 +245,7 @@ void DibujaSFML()
 		t.setPosition(20, 50);
 		window.draw(t);
 
-		t.setString("Time: "+std::to_string(0));
+		t.setString("Time: "+std::to_string(currentTime));
 		t.setPosition(350, 150);
 		window.draw(t);
 
@@ -247,9 +254,9 @@ void DibujaSFML()
 		window.draw(p1.rect);
 		window.draw(p1.rectPoints);
 
-		t.setString(std::to_string(p1.points));
+		t.setString(p1.name+":	"+std::to_string(p1.points));
 		t.setFillColor(sf::Color(0, 0, 0));
-		t.setPosition(150, 540);
+		t.setPosition(20, 540);
 		window.draw(t);
 
 
@@ -259,8 +266,8 @@ void DibujaSFML()
 		window.draw(p2.rectPoints);
 
 		t.setFillColor(sf::Color(255, 255, 255));
-		t.setString(std::to_string(p2.points));
-		t.setPosition(350, 540);
+		t.setString(p2.name + ":	" + std::to_string(p2.points));
+		t.setPosition(220, 540);
 		window.draw(t);
 
 		//PLAYER 3
@@ -268,8 +275,8 @@ void DibujaSFML()
 		window.draw(p3.rect),
 		window.draw(p3.rectPoints);
 
-		t.setString(std::to_string(p3.points));
-		t.setPosition(550, 540);
+		t.setString(p3.name + ":	" + std::to_string(p3.points));
+		t.setPosition(420, 540);
 		window.draw(t);
 
 		//PLAYER 4
@@ -278,8 +285,8 @@ void DibujaSFML()
 		window.draw(p4.rectPoints);
 
 		t.setFillColor(sf::Color(0, 0, 0));
-		t.setString(std::to_string(p4.points));
-		t.setPosition(750, 540);
+		t.setString(p4.name + ":	" + std::to_string(p4.points));
+		t.setPosition(620, 540);
 		window.draw(t);
 
 		window.display();
