@@ -17,7 +17,7 @@ struct Player
 enum Code
 {
 	XMOVE, YMOVE, HELLO, WELLCOME, XPLAYER1, YPLAYER1, XPLAYER2, YPLAYER2, XPLAYER3, YPLAYER3, XPLAYER4, YPLAYER4,
-	ASK, PLAYERSNAME, STARTTIME, ENDTIME
+	ASK, PLAYERSNAME, STARTTIME, ENDTIME, ENDGAME
 };
 
 
@@ -37,6 +37,7 @@ unsigned short portRem;
 
 int currentTime;
 sf::Clock timer;
+bool endGame=false;
 
 void DibujaSFML()
 {
@@ -211,83 +212,105 @@ void DibujaSFML()
 			case ENDTIME:
 				pck >> p1.points>>p2.points>>p3.points>>p4.points;
 				break;
+			case ENDGAME:
+				endGame = true;
+				pck >> pregunta;
+				a = "";
+				b = a;
+				c = a;
+				d = a;
+				break;
 			default:
 				break;
 			}
 		}
 
 		window.clear();
-		//DRAW THE OPTIONS AND QUESTION
-		sf::Text t(a, font, 24);
-		t.setFillColor(sf::Color(255, 255, 0));
-		t.setStyle(sf::Text::Bold);
-		window.draw(aOption);
-		t.setPosition(20, 230);
-		window.draw(t);
+		//Mientras esta en partida
+		if (!endGame)
+		{
+			//DRAW THE OPTIONS AND QUESTION
+			sf::Text t(a, font, 24);
+			t.setFillColor(sf::Color(255, 255, 0));
+			t.setStyle(sf::Text::Bold);
+			window.draw(aOption);
+			t.setPosition(20, 230);
+			window.draw(t);
 
-		window.draw(bOption);
-		t.setString(b);
-		t.setPosition(420, 230);
-		window.draw(t);
+			window.draw(bOption);
+			t.setString(b);
+			t.setPosition(420, 230);
+			window.draw(t);
 
-		window.draw(cOption);
-		t.setString(c);
-		t.setPosition(20, 380);
-		window.draw(t);
+			window.draw(cOption);
+			t.setString(c);
+			t.setPosition(20, 380);
+			window.draw(t);
 
-		window.draw(dOption);
-		t.setString(d);
-		t.setPosition(420, 380);
-		window.draw(t);
+			window.draw(dOption);
+			t.setString(d);
+			t.setPosition(420, 380);
+			window.draw(t);
 
-		t.setString(pregunta);
-		t.setFillColor(sf::Color(255, 255, 255));
-		t.setPosition(20, 50);
-		window.draw(t);
+			t.setString(pregunta);
+			t.setFillColor(sf::Color(255, 255, 255));
+			t.setPosition(20, 50);
+			window.draw(t);
 
-		t.setString("Time: "+std::to_string(currentTime));
-		t.setPosition(350, 150);
-		window.draw(t);
+			t.setString("Time: " + std::to_string(currentTime));
+			t.setPosition(350, 150);
+			window.draw(t);
 
-		//PLAYER 1
-		p1.rect.setPosition(sf::Vector2f(p1.x, p1.y));
-		window.draw(p1.rect);
-		window.draw(p1.rectPoints);
+			//PLAYER 1
+			p1.rect.setPosition(sf::Vector2f(p1.x, p1.y));
+			window.draw(p1.rect);
+			window.draw(p1.rectPoints);
 
-		t.setString(p1.name+":	"+std::to_string(p1.points));
-		t.setFillColor(sf::Color(0, 0, 0));
-		t.setPosition(20, 540);
-		window.draw(t);
+			t.setString(p1.name + ":	" + std::to_string(p1.points));
+			t.setFillColor(sf::Color(0, 0, 0));
+			t.setPosition(20, 540);
+			window.draw(t);
 
 
-		//PLAYER 2
-		p2.rect.setPosition(sf::Vector2f(p2.x, p2.y));
-		window.draw(p2.rect);
-		window.draw(p2.rectPoints);
+			//PLAYER 2
+			p2.rect.setPosition(sf::Vector2f(p2.x, p2.y));
+			window.draw(p2.rect);
+			window.draw(p2.rectPoints);
 
-		t.setFillColor(sf::Color(255, 255, 255));
-		t.setString(p2.name + ":	" + std::to_string(p2.points));
-		t.setPosition(220, 540);
-		window.draw(t);
+			t.setFillColor(sf::Color(255, 255, 255));
+			t.setString(p2.name + ":	" + std::to_string(p2.points));
+			t.setPosition(220, 540);
+			window.draw(t);
 
-		//PLAYER 3
-		p3.rect.setPosition(sf::Vector2f(p3.x, p3.y));
-		window.draw(p3.rect),
-		window.draw(p3.rectPoints);
+			//PLAYER 3
+			p3.rect.setPosition(sf::Vector2f(p3.x, p3.y));
+			window.draw(p3.rect),
+				window.draw(p3.rectPoints);
 
-		t.setString(p3.name + ":	" + std::to_string(p3.points));
-		t.setPosition(420, 540);
-		window.draw(t);
+			t.setString(p3.name + ":	" + std::to_string(p3.points));
+			t.setPosition(420, 540);
+			window.draw(t);
 
-		//PLAYER 4
-		p4.rect.setPosition(sf::Vector2f(p4.x, p4.y));
-		window.draw(p4.rect);
-		window.draw(p4.rectPoints);
+			//PLAYER 4
+			p4.rect.setPosition(sf::Vector2f(p4.x, p4.y));
+			window.draw(p4.rect);
+			window.draw(p4.rectPoints);
 
-		t.setFillColor(sf::Color(0, 0, 0));
-		t.setString(p4.name + ":	" + std::to_string(p4.points));
-		t.setPosition(620, 540);
-		window.draw(t);
+			t.setFillColor(sf::Color(0, 0, 0));
+			t.setString(p4.name + ":	" + std::to_string(p4.points));
+			t.setPosition(620, 540);
+			window.draw(t);
+		}
+
+		//Cuando acaba
+		else
+		{
+			sf::Text t(pregunta, font, 48);
+			t.setFillColor(sf::Color(255, 255, 255));
+			t.setStyle(sf::Text::Bold);
+			t.setPosition(120, 230);
+			window.draw(t);
+		}
 
 		window.display();
 	}

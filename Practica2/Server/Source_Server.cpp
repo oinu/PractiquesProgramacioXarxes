@@ -26,7 +26,7 @@ struct Game
 enum Code
 {
 	XMOVE, YMOVE, HELLO, WELLCOME, XPLAYER1, YPLAYER1, XPLAYER2, YPLAYER2, XPLAYER3, YPLAYER3, XPLAYER4, YPLAYER4,
-	ASK, PLAYERSNAME,STARTTIME,ENDTIME
+	ASK, PLAYERSNAME,STARTTIME,ENDTIME, ENDGAME
 };
 
 sf::UdpSocket sock;
@@ -148,6 +148,40 @@ void NewGame()
 	pck.clear();
 }
 
+void EndGame()
+{
+	std::vector<int>ganadores;
+	int points=-1;
+	//Guardamos el indice del jugador ganador
+	for (int i = 0; i < players.size(); i++)
+	{
+		if (players[i].points > points)
+		{
+			ganadores.clear();
+			ganadores.push_back(i);
+			points = players[i].points;
+		}
+		else if (players[i].points == points)
+		{
+			ganadores.push_back(i);
+		}
+	}
+
+	std::string nombresGanadores;
+	for (int i = 0; i < ganadores.size(); i++)
+	{
+		nombresGanadores += players[i].name+ "	";
+	}
+	//Indicamos el jugador ganador
+	pck.clear();
+	pck << ENDGAME << nombresGanadores + "	WIN!!!";
+	for (int i = 0; i < players.size(); i++)
+	{
+		sock.send(pck, players[i].ip, players[i].port);
+	}
+	pck.clear();
+}
+
 void ActualizarTime()
 {
 	sf::Clock timer;
@@ -161,7 +195,8 @@ void ActualizarTime()
 			if (currentTime == 0)
 			{
 				ActualizarMarcadores();
-				NewGame();
+				if(preguntaActual<4)NewGame();
+				else EndGame();
 			}
 			timer.restart();
 		}
