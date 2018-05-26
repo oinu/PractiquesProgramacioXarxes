@@ -2,6 +2,12 @@
 #include <SFML\Network.hpp>
 #include <iostream>
 #include <thread>
+#include "BBDD.h"
+
+#define IP_PORT "192.168.1.136:3306"
+#define USER "root"
+#define PWD "linux123"
+#define DATABASE "game"
 
 struct Player
 {
@@ -26,7 +32,7 @@ struct Game
 enum Code
 {
 	XMOVE, YMOVE, HELLO, WELLCOME, XPLAYER1, YPLAYER1, XPLAYER2, YPLAYER2, XPLAYER3, YPLAYER3, XPLAYER4, YPLAYER4,
-	ASK, PLAYERSNAME,STARTTIME,ENDTIME, ENDGAME
+	ASK, PLAYERSNAME,STARTTIME,ENDTIME, ENDGAME, ERROR_LOGIN
 };
 
 sf::UdpSocket sock;
@@ -211,6 +217,8 @@ int main()
 		system("pause");
 		exit(0);
 	}
+	BBDD bd(IP_PORT, USER, PWD);
+	bd.SelectDataBase(DATABASE);
 
 	//Se introduccen las preguntas y sus respuestas
 	CreacionPreguntas();
@@ -383,24 +391,39 @@ int main()
 							}
 
 							//Guardamos el nombre recibido
-							pck >> player.name;
-							players.push_back(player);
+							std::string pwd,name;
+							pck >>name>> pwd;
+							
+							User u = bd.ReturnUserByName(name);
 							sf::Packet sendPck;
-							int size = players.size();
-							sendPck << Code::WELLCOME << size;
-							sock.send(sendPck, player.ip, player.port);
 
-							//Cuando llega el ultimo jugador.
-							if (players.size() == 4)
+							//Usuario y contraseña correctos
+							if (u.password == pwd)
 							{
-								NewGame();
-								for (int i = 0; i < players.size(); i++)
+								player.name = name;
+								int size = players.size();
+								players.push_back(player);
+								sendPck << Code::WELLCOME << size;
+								sock.send(sendPck, player.ip, player.port);
+
+								//Cuando llega el ultimo jugador.
+								if (players.size() == 4)
 								{
-									sendPck.clear();
-									sendPck << PLAYERSNAME << players[0].name << players[1].name << players[2].name << players[3].name;
-									sock.send(sendPck, players[i].ip, players[i].port);
+									NewGame();
+									for (int i = 0; i < players.size(); i++)
+									{
+										sendPck.clear();
+										sendPck << PLAYERSNAME << players[0].name << players[1].name << players[2].name << players[3].name;
+										sock.send(sendPck, players[i].ip, players[i].port);
+									}
 								}
 							}
+							else
+							{
+								sendPck << Code::ERROR_LOGIN;
+								sock.send(sendPck, player.ip, player.port);
+							}
+							
 						}
 						break;
 

@@ -17,7 +17,7 @@ struct Player
 enum Code
 {
 	XMOVE, YMOVE, HELLO, WELLCOME, XPLAYER1, YPLAYER1, XPLAYER2, YPLAYER2, XPLAYER3, YPLAYER3, XPLAYER4, YPLAYER4,
-	ASK, PLAYERSNAME, STARTTIME, ENDTIME, ENDGAME
+	ASK, PLAYERSNAME, STARTTIME, ENDTIME, ENDGAME, ERROR_LOGIN
 };
 enum GameState{LOGIN,REGISTER,MENU,MACKING,PLAY,END};
 
@@ -40,6 +40,10 @@ int currentTime;
 sf::Clock timer;
 sf::Font font;
 GameState state = GameState::LOGIN;
+bool clickLogin=false;
+
+bool introUserName, introPassword, introEmail;
+std::string tempUserName, tempPwd, tempEmail;
 
 void DrawGame(sf::RenderWindow& window)
 {
@@ -213,7 +217,7 @@ void DrawLogin(sf::RenderWindow& window)
 	usuario.setFillColor(sf::Color(255, 255, 255, 255));
 	window.draw(usuario);
 
-	t.setString("Dovahkiin");
+	t.setString(tempUserName);
 	t.setPosition(usuario.getPosition()+sf::Vector2f(10,0));
 	t.setFillColor(sf::Color(0, 0, 0));
 	t.setStyle(sf::Text::Bold);
@@ -233,7 +237,7 @@ void DrawLogin(sf::RenderWindow& window)
 	pwd.setFillColor(sf::Color(255, 255, 255, 255));
 	window.draw(pwd);
 
-	t.setString("Nightgale");
+	t.setString(tempPwd);
 	t.setPosition(pwd.getPosition() + sf::Vector2f(10, 0));
 	t.setFillColor(sf::Color(0, 0, 0));
 	t.setStyle(sf::Text::Bold);
@@ -265,6 +269,17 @@ void DrawLogin(sf::RenderWindow& window)
 	t.setStyle(sf::Text::Bold);
 	window.draw(t);
 }
+void Login()
+{
+	sf::Packet pck;
+	std::string name;
+	
+	if (clickLogin)
+	{
+		pck << Code::HELLO << tempUserName<<tempPwd;
+		sock.send(pck, IP_SERVER, PORT_SERVER);
+	}
+}
 
 void DibujaSFML()
 {
@@ -276,50 +291,8 @@ void DibujaSFML()
 	}
 
 	sf::Packet pck;
-	std::cout << "Username:	";
-	std::string name;
-	std::cin >> name;
-	pck << Code::HELLO << name;
-	sock.send(pck, IP_SERVER, PORT_SERVER);
-	bool respostaServidor=false;
-	while (!respostaServidor)
-	{
-		sf::Socket::Status status = sock.receive(pck, ipRem, portRem);
-		if (status == sf::Socket::Done)
-		{
-			int id, num;
-			pck >> id >> num;
-			if (id == WELLCOME)
-			{
-				switch (num)
-				{
-				case 1:
-					localPlayer = &p1;
-					respostaServidor = true;
-					localPlayer->name = name;
-					break;
-				case 2:
-					localPlayer = &p2;
-					respostaServidor = true;
-					localPlayer->name = name;
-					break;
-				case 3:
-					localPlayer = &p3;
-					respostaServidor = true;
-					localPlayer->name = name;
-					break;
-				case 4:
-					localPlayer = &p4;
-					respostaServidor = true;
-					localPlayer->name = name;
-					break;
-				default:
-					break;
-				}
-			}
-		}
-	}
-
+	
+	int mouseX, mouseY;
 	while (window.isOpen())
 	{
 		sf::Event event;
@@ -331,9 +304,17 @@ void DibujaSFML()
 			case sf::Event::Closed:
 				window.close();
 				break;
+
 			case sf::Event::KeyPressed:
-				if (state == GameState::PLAY)
+				switch (state)
 				{
+				case REGISTER:
+					break;
+				case MENU:
+					break;
+				case MACKING:
+					break;
+				case PLAY:
 					if (event.key.code == sf::Keyboard::Left)
 					{
 						sf::Packet pckLeft;
@@ -363,9 +344,60 @@ void DibujaSFML()
 						pckDown << 1 << localPlayer->y;
 						sock.send(pckDown, IP_SERVER, PORT_SERVER);
 					}
+					break;
+				case END:
+					break;
+				default:
+					break;
 				}
 				break;
+			case sf::Event::TextEntered:
+				if (introUserName)
+				{
+					if (event.text.unicode >= 32 && event.text.unicode <= 126 && tempUserName.size()<10)
+						tempUserName += (char)event.text.unicode;
+					else if (event.text.unicode == 8 && tempUserName.size() > 0)
+						tempUserName.erase(tempUserName.size() - 1, tempUserName.size());
+				}
+				else if (introPassword)
+				{
+					if (event.text.unicode >= 32 && event.text.unicode <= 126 && tempPwd.size()<10)
+						tempPwd += (char)event.text.unicode;
+					else if (event.text.unicode == 8 && tempPwd.size() > 0)
+						tempPwd.erase(tempPwd.size() - 1, tempPwd.size());
+				}
+				break;
+			case sf::Event::MouseButtonPressed:
+				mouseX = sf::Mouse::getPosition(window).x;
+				mouseY = sf::Mouse::getPosition(window).y;
 
+				if (state == GameState::LOGIN)
+				{
+					//User Name Text
+					if (mouseX > 380 && mouseX < 580 && mouseY>150 && mouseY < 190)
+					{
+						introUserName = true;
+						introPassword = false;
+						introEmail = false;
+					}
+
+					//Password Text
+					else if (mouseX > 380 && mouseX < 580 && mouseY>250 && mouseY < 300)
+					{
+						introUserName = false;
+						introPassword = true;
+						introEmail = false;
+					}
+
+					//Login Button
+					else if (mouseX > 340 && mouseX < 440 && mouseY>350 && mouseY < 390)
+					{
+						introUserName = false;
+						introPassword = false;
+						introEmail = false;
+						clickLogin = true;
+					}
+				}
 			default:
 				break;
 
@@ -383,9 +415,43 @@ void DibujaSFML()
 		if (status == sf::Socket::Done)
 		{
 			int id,pos;
+			std::string name;
+
 			pck >> id;
+
 			switch (id)
 			{
+			case WELLCOME:
+				pck >> name;
+				switch (id)
+				{
+				case 1:
+					localPlayer = &p1;
+					localPlayer->name = name;
+					break;
+				case 2:
+					localPlayer = &p2;
+					localPlayer->name = name;
+					break;
+				case 3:
+					localPlayer = &p3;
+					localPlayer->name = name;
+					break;
+				case 4:
+					localPlayer = &p4;
+					localPlayer->name = name;
+					break;
+				default:
+					break;
+				}
+				clickLogin = false;
+				state = GameState::MENU;
+				break;
+			case ERROR_LOGIN:
+				tempUserName = "";
+				tempPwd = "";
+				clickLogin = false;
+				break;
 			case -1:
 				localPlayer->x = localPlayer->previusX;
 				localPlayer->y = localPlayer->previusY;
@@ -462,6 +528,7 @@ void DibujaSFML()
 		switch (state)
 		{
 		case LOGIN:
+			Login();
 			DrawLogin(window);
 			break;
 		case REGISTER:

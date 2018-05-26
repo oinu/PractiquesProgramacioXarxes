@@ -56,14 +56,20 @@ bool BBDD::ExistEmail(std::string email)
 
 User BBDD::ReturnUserByName(std::string name)
 {
-	std::string s = "SELECT * FROM Users WHERE Name='" + name + "'";
-	resulset = stmt->executeQuery(s.c_str());
-	resulset->next();
 	User u;
-	u.id = resulset->getInt("ID");
-	u.name = resulset->getString("Name").c_str();
-	u.password= resulset->getString("Password").c_str();
-	u.email = resulset->getString("Email").c_str();
+	u.password = "root";
+	u.name = "root";
+	if (ExistUser(name))
+	{
+		std::string s = "SELECT * FROM Users WHERE Name='" + name + "'";
+		resulset = stmt->executeQuery(s.c_str());
+		resulset->next();
+		u.id = resulset->getInt("ID");
+		u.name = resulset->getString("Name").c_str();
+		u.password = resulset->getString("Password").c_str();
+		u.email = resulset->getString("Email").c_str();
+	}
+	
 	return u;
 }
 
