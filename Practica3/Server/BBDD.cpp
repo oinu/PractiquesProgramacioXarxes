@@ -23,20 +23,21 @@ void BBDD::SelectDataBase(std::string db)
 	stmt->execute(s.c_str());
 }
 
-void BBDD::InsertUser(std::string name, std::string password, std::string email)
+bool BBDD::InsertUser(std::string name, std::string password, std::string email)
 {
 	if (ExistUser(name))
 	{
-		std::cout << " El nombre de usuario ya exite" << std::endl;
+		return false;
 	}
 	else if (ExistEmail(email))
 	{
-		std::cout << " El email ya esta en uso" << std::endl;
+		return false;
 	}
 	else
 	{
-		std::string s = "INSERT INTO Users(name,password,email) VALUES ('" + name + "','" + password + "','" + email + "')";
+		std::string s = "INSERT INTO Users(Name,Password,Email) VALUES ('" + name + "','" + password + "','" + email + "')";
 		stmt->execute(s.c_str());
+		return true;
 	}
 }
 
@@ -86,17 +87,17 @@ User BBDD::ReturnUserByEmail(std::string email)
 	return u;
 }
 
-void BBDD::RestorePassword(std::string email, std::string pwd)
+bool BBDD::RestorePassword(std::string email, std::string pwd)
 {
 	if (!ExistEmail(email))
 	{
-		std::cout << "Correo erronio" << std::endl;
+		return false;
 	}
 	else
 	{
 		ChangePassword(email, pwd);
 		User u = ReturnUserByEmail(email);
-		std::cout << "Hola " << u.name << ", se actualizado tu contraseña!" << std::endl;
+		return true;
 	}
 }
 

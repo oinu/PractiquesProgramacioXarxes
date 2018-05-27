@@ -32,9 +32,8 @@ struct Game
 enum Code
 {
 	XMOVE, YMOVE, HELLO, WELLCOME, XPLAYER1, YPLAYER1, XPLAYER2, YPLAYER2, XPLAYER3, YPLAYER3, XPLAYER4, YPLAYER4,
-	ASK, PLAYERSNAME,STARTTIME,ENDTIME, ENDGAME, ERROR_LOGIN
+	ASK, PLAYERSNAME, STARTTIME, ENDTIME, ENDGAME, ERROR_LOGIN, CHANGE_PASSWORD, ERROR_CHANGE, NEW_USER, ERROR_NEW_USER
 };
-
 sf::UdpSocket sock;
 sf::Socket::Status status = sock.bind(50000);
 std::vector<Player> players;
@@ -244,6 +243,7 @@ int main()
 				if (status == sf::Socket::Done)
 				{
 					int id, pos;
+					std::string name,email, password;
 					pck >> id;
 					Player player;
 
@@ -425,6 +425,41 @@ int main()
 							}
 							
 						}
+						break;
+					case CHANGE_PASSWORD:
+						pck >> email >> password;
+						
+						if (bd.RestorePassword(email, password))
+						{
+							sf::Packet pckSend;
+							pckSend << Code::CHANGE_PASSWORD;
+							sock.send(pckSend, p.ip, p.port);
+						}
+						else
+						{
+							sf::Packet pckSend;
+							pckSend << Code::ERROR_CHANGE;
+							sock.send(pckSend, p.ip, p.port);
+						}
+
+						break;
+
+					case NEW_USER:
+						pck >> name >> password>> email;
+
+						if (bd.InsertUser(name, password, email))
+						{
+							sf::Packet pckSend;
+							pckSend << Code::NEW_USER;
+							sock.send(pckSend, p.ip, p.port);
+						}
+						else
+						{
+							sf::Packet pckSend;
+							pckSend << Code::ERROR_NEW_USER;
+							sock.send(pckSend, p.ip, p.port);
+						}
+
 						break;
 
 					default:

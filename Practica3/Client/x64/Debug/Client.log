@@ -4,8 +4,8 @@ c:\users\alumne\desktop\practiquesprogramacioxarxes\practica3\client\source_clie
 c:\users\alumne\desktop\practiquesprogramacioxarxes\practica3\client\source_client.cpp(104): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
 c:\users\alumne\desktop\practiquesprogramacioxarxes\practica3\client\source_client.cpp(113): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
 c:\users\alumne\desktop\practiquesprogramacioxarxes\practica3\client\source_client.cpp(151): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-c:\users\alumne\desktop\practiquesprogramacioxarxes\practica3\client\source_client.cpp(568): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-c:\users\alumne\desktop\practiquesprogramacioxarxes\practica3\client\source_client.cpp(582): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-c:\users\alumne\desktop\practiquesprogramacioxarxes\practica3\client\source_client.cpp(596): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-c:\users\alumne\desktop\practiquesprogramacioxarxes\practica3\client\source_client.cpp(610): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\alumne\desktop\practiquesprogramacioxarxes\practica3\client\source_client.cpp(964): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\alumne\desktop\practiquesprogramacioxarxes\practica3\client\source_client.cpp(978): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\alumne\desktop\practiquesprogramacioxarxes\practica3\client\source_client.cpp(992): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\alumne\desktop\practiquesprogramacioxarxes\practica3\client\source_client.cpp(1006): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
   Client.vcxproj -> C:\Users\alumne\Desktop\PractiquesProgramacioXarxes\Practica3\x64\Debug\Client.exe

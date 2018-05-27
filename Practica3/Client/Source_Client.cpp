@@ -17,9 +17,9 @@ struct Player
 enum Code
 {
 	XMOVE, YMOVE, HELLO, WELLCOME, XPLAYER1, YPLAYER1, XPLAYER2, YPLAYER2, XPLAYER3, YPLAYER3, XPLAYER4, YPLAYER4,
-	ASK, PLAYERSNAME, STARTTIME, ENDTIME, ENDGAME, ERROR_LOGIN
+	ASK, PLAYERSNAME, STARTTIME, ENDTIME, ENDGAME, ERROR_LOGIN, CHANGE_PASSWORD, ERROR_CHANGE, NEW_USER, ERROR_NEW_USER
 };
-enum GameState{LOGIN,REGISTER,MENU,MACKING,PLAY,END};
+enum GameState{LOGIN,REGISTER,FORGOT_PASSWORD,MENU,MACKING,PLAY,END};
 
 
 Player p1,p2,p3,p4;
@@ -39,10 +39,10 @@ unsigned short portRem;
 int currentTime;
 sf::Clock timer;
 sf::Font font;
-GameState state = GameState::LOGIN;
-bool clickLogin=false;
+GameState state = GameState::REGISTER;
+bool clickLogin,clickChange,clickNewUser;
 
-bool introUserName, introPassword, introEmail;
+bool introUserName, introPassword, introEmail,errorLogin,errorForget,errorNew;
 std::string tempUserName, tempPwd, tempEmail;
 
 void DrawGame(sf::RenderWindow& window)
@@ -203,6 +203,17 @@ void DrawLogin(sf::RenderWindow& window)
 	t.setStyle(sf::Text::Bold);
 	window.draw(t);
 
+	if (errorLogin)
+	{
+		//Warrning
+		t.setString("ERROR: User name and/or password incorrect");
+		t.setCharacterSize(16);
+		t.setPosition(250, 120);
+		t.setFillColor(sf::Color(255, 50, 50));
+		t.setStyle(sf::Text::Bold);
+		window.draw(t);
+	}
+
 	//Usuario
 	t.setString("User:");
 	t.setCharacterSize(24);
@@ -258,7 +269,7 @@ void DrawLogin(sf::RenderWindow& window)
 
 	//Log In
 	sf::RectangleShape newUser;
-	newUser.setPosition(login.getPosition() + sf::Vector2f(0, 100));
+	newUser.setPosition(login.getPosition() + sf::Vector2f(-150, 100));
 	newUser.setSize(sf::Vector2f(150, 50));
 	newUser.setFillColor(sf::Color(255, 255, 255, 255));
 	window.draw(newUser);
@@ -268,7 +279,224 @@ void DrawLogin(sf::RenderWindow& window)
 	t.setFillColor(sf::Color(0, 0, 0));
 	t.setStyle(sf::Text::Bold);
 	window.draw(t);
+
+	//Forget Password
+	newUser.setPosition(newUser.getPosition() + sf::Vector2f(200, 0));
+	newUser.setSize(sf::Vector2f(250, 50));
+	newUser.setFillColor(sf::Color(255, 255, 255, 255));
+	window.draw(newUser);
+
+	t.setString("Forgot Password?");
+	t.setPosition(newUser.getPosition() + sf::Vector2f(10, 10));
+	t.setFillColor(sf::Color(0, 0, 0));
+	t.setStyle(sf::Text::Bold);
+	window.draw(t);
 }
+void DrawChangePassword(sf::RenderWindow& window)
+{
+	//Pintamos el fondo
+	sf::RectangleShape background;
+	background.setPosition(10, 10);
+	background.setSize(sf::Vector2f(780, 580));
+	background.setFillColor(sf::Color(150, 150, 150, 255));
+	window.draw(background);
+
+	//Forget Password?
+	sf::Text t("Forget Password?", font, 48);
+	t.setPosition(200, 20);
+	t.setFillColor(sf::Color(255, 255, 0));
+	t.setStyle(sf::Text::Bold);
+	window.draw(t);
+
+	if (errorForget)
+	{
+		//Warrning
+		t.setString("ERROR: Email not exist");
+		t.setCharacterSize(16);
+		t.setPosition(250, 120);
+		t.setFillColor(sf::Color(255, 50, 50));
+		t.setStyle(sf::Text::Bold);
+		window.draw(t);
+	}
+
+	//Email
+	t.setString("Email:");
+	t.setCharacterSize(24);
+	t.setPosition(300, 150);
+	t.setFillColor(sf::Color(0, 0, 0));
+	t.setStyle(sf::Text::Bold);
+	window.draw(t);
+
+	sf::RectangleShape usuario;
+	usuario.setPosition(t.getPosition() + sf::Vector2f(80, -5));
+	usuario.setSize(sf::Vector2f(200, 50));
+	usuario.setFillColor(sf::Color(255, 255, 255, 255));
+	window.draw(usuario);
+
+	t.setString(tempEmail);
+	t.setPosition(usuario.getPosition() + sf::Vector2f(10, 0));
+	t.setFillColor(sf::Color(0, 0, 0));
+	t.setStyle(sf::Text::Bold);
+	window.draw(t);
+
+	//Contraseña
+	t.setString("Password:");
+	t.setCharacterSize(24);
+	t.setPosition(250, 250);
+	t.setFillColor(sf::Color(0, 0, 0));
+	t.setStyle(sf::Text::Bold);
+	window.draw(t);
+
+	sf::RectangleShape pwd;
+	pwd.setPosition(t.getPosition() + sf::Vector2f(130, -5));
+	pwd.setSize(sf::Vector2f(200, 50));
+	pwd.setFillColor(sf::Color(255, 255, 255, 255));
+	window.draw(pwd);
+
+	t.setString(tempPwd);
+	t.setPosition(pwd.getPosition() + sf::Vector2f(10, 0));
+	t.setFillColor(sf::Color(0, 0, 0));
+	t.setStyle(sf::Text::Bold);
+	window.draw(t);
+
+	//Change
+	sf::RectangleShape login;
+	login.setPosition(pwd.getPosition() + sf::Vector2f(-40, 100));
+	login.setSize(sf::Vector2f(100, 50));
+	login.setFillColor(sf::Color(255, 255, 255, 255));
+	window.draw(login);
+
+	t.setString("Change");
+	t.setPosition(login.getPosition() + sf::Vector2f(10, 10));
+	t.setFillColor(sf::Color(0, 0, 0));
+	t.setStyle(sf::Text::Bold);
+	window.draw(t);
+
+	//Back
+	sf::RectangleShape newUser;
+	newUser.setPosition(login.getPosition() + sf::Vector2f(0, 100));
+	newUser.setSize(sf::Vector2f(150, 50));
+	newUser.setFillColor(sf::Color(255, 255, 255, 255));
+	window.draw(newUser);
+
+	t.setString("Back");
+	t.setPosition(newUser.getPosition() + sf::Vector2f(10, 10));
+	t.setFillColor(sf::Color(0, 0, 0));
+	t.setStyle(sf::Text::Bold);
+	window.draw(t);
+}
+void DrawNewUser(sf::RenderWindow& window)
+{
+	//Pintamos el fondo
+	sf::RectangleShape background;
+	background.setPosition(10, 10);
+	background.setSize(sf::Vector2f(780, 580));
+	background.setFillColor(sf::Color(150, 150, 150, 255));
+	window.draw(background);
+
+	//Login
+	sf::Text t("New User", font, 48);
+	t.setPosition(350, 20);
+	t.setFillColor(sf::Color(255, 255, 0));
+	t.setStyle(sf::Text::Bold);
+	window.draw(t);
+
+	if (errorNew)
+	{
+		//Warrning
+		t.setString("ERROR: User name and/or email exist");
+		t.setCharacterSize(16);
+		t.setPosition(250, 120);
+		t.setFillColor(sf::Color(255, 50, 50));
+		t.setStyle(sf::Text::Bold);
+		window.draw(t);
+	}
+
+	//Usuario
+	t.setString("User:");
+	t.setCharacterSize(24);
+	t.setPosition(300, 150);
+	t.setFillColor(sf::Color(0, 0, 0));
+	t.setStyle(sf::Text::Bold);
+	window.draw(t);
+
+	sf::RectangleShape usuario;
+	usuario.setPosition(t.getPosition() + sf::Vector2f(80, -5));
+	usuario.setSize(sf::Vector2f(200, 50));
+	usuario.setFillColor(sf::Color(255, 255, 255, 255));
+	window.draw(usuario);
+
+	t.setString(tempUserName);
+	t.setPosition(usuario.getPosition() + sf::Vector2f(10, 0));
+	t.setFillColor(sf::Color(0, 0, 0));
+	t.setStyle(sf::Text::Bold);
+	window.draw(t);
+
+	//Contraseña
+	t.setString("Password:");
+	t.setCharacterSize(24);
+	t.setPosition(250, 250);
+	t.setFillColor(sf::Color(0, 0, 0));
+	t.setStyle(sf::Text::Bold);
+	window.draw(t);
+
+	sf::RectangleShape pwd;
+	pwd.setPosition(t.getPosition() + sf::Vector2f(130, -5));
+	pwd.setSize(sf::Vector2f(200, 50));
+	pwd.setFillColor(sf::Color(255, 255, 255, 255));
+	window.draw(pwd);
+
+	t.setString(tempPwd);
+	t.setPosition(pwd.getPosition() + sf::Vector2f(10, 0));
+	t.setFillColor(sf::Color(0, 0, 0));
+	t.setStyle(sf::Text::Bold);
+	window.draw(t);
+
+	//Email
+	t.setString("Email:");
+	t.setCharacterSize(24);
+	t.setPosition(250, 350);
+	t.setFillColor(sf::Color(0, 0, 0));
+	t.setStyle(sf::Text::Bold);
+	window.draw(t);
+
+	pwd.setPosition(t.getPosition() + sf::Vector2f(130, -5));
+	pwd.setSize(sf::Vector2f(200, 50));
+	pwd.setFillColor(sf::Color(255, 255, 255, 255));
+	window.draw(pwd);
+
+	t.setString(tempEmail);
+	t.setPosition(pwd.getPosition() + sf::Vector2f(10, 0));
+	t.setFillColor(sf::Color(0, 0, 0));
+	t.setStyle(sf::Text::Bold);
+	window.draw(t);
+
+	//Log In
+	sf::RectangleShape newUser;
+	newUser.setPosition(pwd.getPosition() + sf::Vector2f(-150, 100));
+	newUser.setSize(sf::Vector2f(150, 50));
+	newUser.setFillColor(sf::Color(255, 255, 255, 255));
+	window.draw(newUser);
+
+	t.setString("New User");
+	t.setPosition(newUser.getPosition() + sf::Vector2f(10, 10));
+	t.setFillColor(sf::Color(0, 0, 0));
+	t.setStyle(sf::Text::Bold);
+	window.draw(t);
+
+	//Forget Password
+	newUser.setPosition(newUser.getPosition() + sf::Vector2f(200, 0));
+	newUser.setSize(sf::Vector2f(100, 50));
+	newUser.setFillColor(sf::Color(255, 255, 255, 255));
+	window.draw(newUser);
+
+	t.setString("Back");
+	t.setPosition(newUser.getPosition() + sf::Vector2f(10, 10));
+	t.setFillColor(sf::Color(0, 0, 0));
+	t.setStyle(sf::Text::Bold);
+	window.draw(t);
+}
+
 void Login()
 {
 	sf::Packet pck;
@@ -277,6 +505,32 @@ void Login()
 	if (clickLogin)
 	{
 		pck << Code::HELLO << tempUserName<<tempPwd;
+		sock.send(pck, IP_SERVER, PORT_SERVER);
+	}
+}
+void Change()
+{
+	sf::Packet pck;
+	std::string name;
+
+	if (clickChange)
+	{
+		pck << Code::CHANGE_PASSWORD << tempEmail << tempPwd;
+		sock.send(pck, IP_SERVER, PORT_SERVER);
+	}
+}
+void NewUser()
+{
+	sf::Packet pck;
+	std::string name;
+	if ((tempEmail == "" || tempUserName == "" || tempPwd == "") && clickNewUser)
+	{
+		clickNewUser = false;
+		errorNew = true;
+	}
+	if (clickNewUser)
+	{
+		pck << Code::NEW_USER << tempUserName << tempPwd << tempEmail;
 		sock.send(pck, IP_SERVER, PORT_SERVER);
 	}
 }
@@ -306,15 +560,8 @@ void DibujaSFML()
 				break;
 
 			case sf::Event::KeyPressed:
-				switch (state)
+				if (state == GameState::PLAY)
 				{
-				case REGISTER:
-					break;
-				case MENU:
-					break;
-				case MACKING:
-					break;
-				case PLAY:
 					if (event.key.code == sf::Keyboard::Left)
 					{
 						sf::Packet pckLeft;
@@ -344,11 +591,6 @@ void DibujaSFML()
 						pckDown << 1 << localPlayer->y;
 						sock.send(pckDown, IP_SERVER, PORT_SERVER);
 					}
-					break;
-				case END:
-					break;
-				default:
-					break;
 				}
 				break;
 			case sf::Event::TextEntered:
@@ -365,6 +607,13 @@ void DibujaSFML()
 						tempPwd += (char)event.text.unicode;
 					else if (event.text.unicode == 8 && tempPwd.size() > 0)
 						tempPwd.erase(tempPwd.size() - 1, tempPwd.size());
+				}
+				else if (introEmail)
+				{
+					if (event.text.unicode >= 32 && event.text.unicode <= 126 && tempEmail.size()<20)
+						tempEmail += (char)event.text.unicode;
+					else if (event.text.unicode == 8 && tempEmail.size() > 0)
+						tempEmail.erase(tempEmail.size() - 1, tempEmail.size());
 				}
 				break;
 			case sf::Event::MouseButtonPressed:
@@ -397,7 +646,120 @@ void DibujaSFML()
 						introEmail = false;
 						clickLogin = true;
 					}
+
+					//New User Button
+					else if (mouseX > 190 && mouseX < 340 && mouseY>440 && mouseY < 500)
+					{
+						introUserName = false;
+						introPassword = false;
+						introEmail = false;
+						clickLogin = false;
+						tempEmail = "";
+						tempPwd = "";
+						tempUserName = "";
+						state = GameState::REGISTER;
+					}
+
+					//Forget Password Button
+					else if (mouseX > 400 && mouseX < 640 && mouseY>440 && mouseY < 500)
+					{
+						introUserName = false;
+						introPassword = false;
+						introEmail = false;
+						clickLogin = false;
+						tempEmail = "";
+						tempPwd = "";
+						tempUserName = "";
+						state = GameState::FORGOT_PASSWORD;
+					}
 				}
+				else if (state == GameState::FORGOT_PASSWORD)
+				{
+					//Email Text
+					if (mouseX > 380 && mouseX < 580 && mouseY>150 && mouseY < 190)
+					{
+						introUserName = false;
+						introPassword = false;
+						introEmail = true;
+					}
+
+					//Password Text
+					else if (mouseX > 380 && mouseX < 580 && mouseY>250 && mouseY < 300)
+					{
+						introUserName = false;
+						introPassword = true;
+						introEmail = false;
+					}
+
+					//Change Button
+					else if (mouseX > 340 && mouseX < 440 && mouseY>350 && mouseY < 390)
+					{
+						introUserName = false;
+						introPassword = false;
+						introEmail = false;
+						clickChange = true;
+					}
+
+					//Back Button
+					else if (mouseX > 340 && mouseX < 490 && mouseY>450 && mouseY < 495)
+					{
+						introUserName = false;
+						introPassword = false;
+						introEmail = false;
+						clickChange = false;
+						state = GameState::LOGIN;
+
+					}
+				}
+				else if (state == GameState::REGISTER)
+				{
+					//User Name Text
+					if (mouseX > 380 && mouseX < 580 && mouseY>150 && mouseY < 190)
+					{
+						introUserName = true;
+						introPassword = false;
+						introEmail = false;
+					}
+
+					//Password Text
+					else if (mouseX > 380 && mouseX < 580 && mouseY>250 && mouseY < 300)
+					{
+						introUserName = false;
+						introPassword = true;
+						introEmail = false;
+					}
+
+					//Login Button
+					else if (mouseX > 380 && mouseX < 580 && mouseY>350 && mouseY < 390)
+					{
+						introUserName = false;
+						introPassword = false;
+						introEmail = true;
+					}
+
+					//New User Button
+					else if (mouseX > 190 && mouseX < 340 && mouseY>440 && mouseY < 500)
+					{
+						introUserName = false;
+						introPassword = false;
+						introEmail = false;
+						clickNewUser = true;
+					}
+
+					//Back Button
+					else if (mouseX > 400 && mouseX < 640 && mouseY>440 && mouseY < 500)
+					{
+						introUserName = false;
+						introPassword = false;
+						introEmail = false;
+						clickNewUser = false;
+						tempEmail = "";
+						tempPwd = "";
+						tempUserName = "";
+						state = GameState::LOGIN;
+					}
+				}
+				break;
 			default:
 				break;
 
@@ -421,6 +783,32 @@ void DibujaSFML()
 
 			switch (id)
 			{
+			case NEW_USER:
+				clickNewUser = false;
+				tempEmail = "";
+				tempPwd = "";
+				tempUserName = "";
+				state = GameState::LOGIN;
+				break;
+
+			case ERROR_NEW_USER:
+				clickNewUser = false;
+				errorNew = true;
+				tempEmail = "";
+				tempPwd = "";
+				tempUserName = "";
+				break;
+
+			case CHANGE_PASSWORD:
+				clickChange = false;
+				state = GameState::LOGIN;
+				break;
+			case ERROR_CHANGE:
+				tempEmail = "";
+				tempPwd = "";
+				errorForget = true;
+				clickChange = false;
+				break;
 			case WELLCOME:
 				pck >> name;
 				switch (id)
@@ -445,12 +833,14 @@ void DibujaSFML()
 					break;
 				}
 				clickLogin = false;
+				errorLogin = false;
 				state = GameState::MENU;
 				break;
 			case ERROR_LOGIN:
 				tempUserName = "";
 				tempPwd = "";
 				clickLogin = false;
+				errorLogin = true;
 				break;
 			case -1:
 				localPlayer->x = localPlayer->previusX;
@@ -532,6 +922,12 @@ void DibujaSFML()
 			DrawLogin(window);
 			break;
 		case REGISTER:
+			NewUser();
+			DrawNewUser(window);
+			break;
+		case FORGOT_PASSWORD:
+			Change();
+			DrawChangePassword(window);
 			break;
 		case MENU:
 			DrawMenu(window);

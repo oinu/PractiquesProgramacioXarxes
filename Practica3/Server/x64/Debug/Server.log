@@ -1,1 +1,4 @@
-﻿  Server.vcxproj -> C:\Users\alumne\Desktop\PractiquesProgramacioXarxes\Practica3\x64\Debug\Server.exe
+﻿  Source_Server.cpp
+  Unknown compiler version - please run the configure tests and report the results
+c:\users\alumne\desktop\practiquesprogramacioxarxes\practica3\server\source_server.cpp(404): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+  Server.vcxproj -> C:\Users\alumne\Desktop\PractiquesProgramacioXarxes\Practica3\x64\Debug\Server.exe
