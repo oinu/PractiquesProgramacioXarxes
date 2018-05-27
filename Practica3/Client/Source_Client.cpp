@@ -39,7 +39,7 @@ unsigned short portRem;
 int currentTime;
 sf::Clock timer;
 sf::Font font;
-GameState state = GameState::REGISTER;
+GameState state = GameState::LOGIN;
 bool clickLogin,clickChange,clickNewUser;
 
 bool introUserName, introPassword, introEmail,errorLogin,errorForget,errorNew;
@@ -834,7 +834,7 @@ void DibujaSFML()
 				}
 				clickLogin = false;
 				errorLogin = false;
-				state = GameState::MENU;
+				state = GameState::PLAY;
 				break;
 			case ERROR_LOGIN:
 				tempUserName = "";
