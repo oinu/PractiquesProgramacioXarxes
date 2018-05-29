@@ -7,6 +7,7 @@ BBDD::BBDD(std::string ip,std::string user, std::string pwd)
 	driver = get_driver_instance();
 	con = driver->connect(ip.c_str(), user.c_str(), pwd.c_str());
 	stmt = con->createStatement();
+	srand(time(NULL));
 }
 
 
@@ -124,4 +125,66 @@ void BBDD::ChangePassword(std::string email, std::string pwd)
 {
 	std::string s = "UPDATE Users SET Password ='" + pwd + "' WHERE Email='" + email + "'";
 	stmt->execute(s.c_str());
+}
+
+void BBDD::ReturnQuestion(std::string& question, std::string& ansA, std::string& ansB, std::string& ansC, std::string& ansD, int& correct, std::vector<int>& idQuestions)
+{
+	std::string s = "SELECT count(*) FROM Questions";
+	resulset = stmt->executeQuery(s.c_str());
+	resulset->next();
+	
+	//Cogemos el numero total de preguntas
+	int max = resulset->getInt(1);
+
+	//Escogemos una id al azar
+	int randomId = rand() % max + 1;
+	int i = 0;
+	bool exist = false;
+
+	//Comprovamos que no exista en la lista
+	while (!exist && i<idQuestions.size())
+	{
+		exist=idQuestions[i] == randomId;
+		i++;
+	}
+
+	//Si existe
+	if (exist)
+	{
+		bool newNumber = false;
+
+		//Buscamos un numero valido
+		while (!newNumber)
+		{
+			//Generamos una id nueva
+			randomId = rand() % max + 1;
+
+			//Suponemos que no existe
+			exist = false;
+
+			//Comprovamos que no existe
+			while (!exist && i<idQuestions.size())
+			{
+				exist = idQuestions[i] == randomId;
+				i++;
+			}
+
+			//Si a recorrido toda la lista y no existe el numero, hemos encontrado una id valida
+			newNumber = (i == idQuestions.size() && !exist);
+		}
+
+	}
+
+	s = "SELECT * FROM Questions WHERE ID_QUESTION="+std::to_string(randomId);
+	resulset=stmt->executeQuery(s.c_str());
+	resulset->next();
+
+	question = resulset->getString("QUESTION").c_str();
+	ansA = resulset->getString("ANSWER_A").c_str();
+	ansB = resulset->getString("ANSWER_B").c_str();
+	ansC = resulset->getString("ANSWER_C").c_str();
+	ansD = resulset->getString("ANSWER_D").c_str();
+	correct = resulset->getInt("CORRECT");
+
+	idQuestions.push_back(randomId);
 }

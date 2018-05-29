@@ -44,6 +44,7 @@ int index = -1;
 int preguntaActual = 0;
 bool state = true;
 int currentTime =-1;
+BBDD bd(IP_PORT, USER, PWD);
 
 
 
@@ -96,40 +97,11 @@ void ActualizarMarcadores()
 
 void CreacionPreguntas()
 {
-	g[0].pregunta = "Que es un bracamarte ?";
-	g[0].a = "A: Un tipo de espada";
-	g[0].b = "B: Una danza del Europa Este";
-	g[0].c = "C: Un instrumento africano";
-	g[0].d = "D: Una mascara japonesa";
-	g[0].respuesta = 1;
-
-	g[1].pregunta = "Artista cofundador del cubismo ?";
-	g[1].a = "A : Leonardo Da Vinci";
-	g[1].b = "B : Francis Ford Coppola";
-	g[1].c = "C : Pablo Picasso";
-	g[1].d = "D : Cube McCubinson";
-	g[1].respuesta = 3;
-
-	g[2].pregunta = "Que año acabo la Guerra Fria ?";
-	g[2].a = "A : 1993";
-	g[2].b = "B : 1940";
-	g[2].c = "C : Aun sigue";
-	g[2].d = "D :1989";
-	g[2].respuesta = 4;
-
-	g[3].pregunta = "Cual fue el primer libro impreso ?";
-	g[3].a = "A : un libro de recetas";
-	g[3].b = "B : una biblia cristiana";
-	g[3].c = "C : un registro de propiedades";
-	g[3].d = "D : un comic";
-	g[3].respuesta = 2;
-
-	g[4].pregunta = "Cuando hablamos de un dingo, nos referimos a...";
-	g[4].a = "A : Un plato italiano";
-	g[4].b = "B : Un animal australiano";
-	g[4].c = "C : Un insulto mexicano";
-	g[4].d = "D : Una especie de araña alemana";
-	g[4].respuesta = 2;
+	std::vector<int>idQuestions;
+	for (int i = 0; i < 5; i++)
+	{
+		bd.ReturnQuestion(g[i].pregunta, g[i].a, g[i].b, g[i].c, g[i].d, g[i].respuesta,idQuestions);
+	}
 }
 
 void NewGame()
@@ -216,7 +188,7 @@ int main()
 		system("pause");
 		exit(0);
 	}
-	BBDD bd(IP_PORT, USER, PWD);
+
 	bd.SelectDataBase(DATABASE);
 
 	//Se introduccen las preguntas y sus respuestas

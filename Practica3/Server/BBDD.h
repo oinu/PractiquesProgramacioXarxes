@@ -4,6 +4,9 @@
 #include <cppconn\resultset.h>
 #include <cppconn\statement.h>
 #include <cppconn\exception.h>
+#include <stdlib.h>
+#include <time.h>
+#include <vector>
 
 struct User {
 	int id;
@@ -33,5 +36,6 @@ public:
 	void ChangeNameUser(std::string actual, std::string newName);
 	void ChangeEmail(std::string name, std::string email);
 	void ChangePassword(std::string email, std::string pwd);
+	void ReturnQuestion(std::string& question, std::string& ansA, std::string& ansB, std::string& ansC, std::string& ansD, int& correct, std::vector<int>& idQuestions);
 };
 
