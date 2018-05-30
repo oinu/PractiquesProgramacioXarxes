@@ -17,7 +17,8 @@ struct Player
 enum Code
 {
 	XMOVE, YMOVE, HELLO, WELLCOME, XPLAYER1, YPLAYER1, XPLAYER2, YPLAYER2, XPLAYER3, YPLAYER3, XPLAYER4, YPLAYER4,
-	ASK, PLAYERSNAME, STARTTIME, ENDTIME, ENDGAME, ERROR_LOGIN, CHANGE_PASSWORD, ERROR_CHANGE, NEW_USER, ERROR_NEW_USER
+	ASK, PLAYERSNAME, STARTTIME, ENDTIME, ENDGAME, ERROR_LOGIN, CHANGE_PASSWORD, ERROR_CHANGE, NEW_USER, ERROR_NEW_USER,
+	NEW_MATCH, NUMBER_GAMES, JOIN, MATCHES
 };
 enum GameState{LOGIN,REGISTER,FORGOT_PASSWORD,MENU,MACKING,PLAY,END};
 
@@ -44,6 +45,9 @@ bool clickLogin,clickChange,clickNewUser;
 
 bool introUserName, introPassword, introEmail,errorLogin,errorForget,errorNew;
 std::string tempUserName, tempPwd, tempEmail;
+int numberGames = 0;
+std::vector<std::string>matchNames;
+std::vector<int>matchNumberPlayers;
 
 void DrawGame(sf::RenderWindow& window)
 {
@@ -146,11 +150,11 @@ void DrawMenu(sf::RenderWindow& window)
 	sf::RectangleShape partida;
 	partida.setSize(sf::Vector2f(450, 50));
 	partida.setFillColor(sf::Color(150, 150, 150, 255));
-	for (int i = 0; i < 6; i++)
+	for (int i = 0; i < numberGames; i++)
 	{
 		partida.setPosition(60,120+70*i);
 		window.draw(partida);
-		std::string text = "Game 1		1/4";
+		std::string text = matchNames[i]+"		"+std::to_string(matchNumberPlayers[i])+"/4";
 		sf::Text textPartida(text, font, 24);
 		textPartida.setPosition(partida.getPosition()+sf::Vector2f(10,0));
 		textPartida.setFillColor(sf::Color(255, 255, 0));
@@ -496,6 +500,15 @@ void DrawNewUser(sf::RenderWindow& window)
 	t.setStyle(sf::Text::Bold);
 	window.draw(t);
 }
+void DrawMacking(sf::RenderWindow& window)
+{
+	//Pintamos el fondo
+	sf::RectangleShape background;
+	background.setPosition(10, 10);
+	background.setSize(sf::Vector2f(780, 580));
+	background.setFillColor(sf::Color(150, 150, 150, 255));
+	window.draw(background);
+}
 
 void Login()
 {
@@ -620,6 +633,7 @@ void DibujaSFML()
 				mouseX = sf::Mouse::getPosition(window).x;
 				mouseY = sf::Mouse::getPosition(window).y;
 
+				
 				if (state == GameState::LOGIN)
 				{
 					//User Name Text
@@ -759,6 +773,32 @@ void DibujaSFML()
 						state = GameState::LOGIN;
 					}
 				}
+				else if (state == GameState::MENU)
+				{
+					if (mouseX > 670 && mouseX < 770 && mouseY>250 && mouseY < 300)
+					{
+						pck.clear();
+						pck << NEW_MATCH;
+						sock.send(pck, IP_SERVER, PORT_SERVER);
+					}
+					else if (mouseX > 670 && mouseX < 770 && mouseY>320 && mouseY < 370)
+					{
+						window.close();
+					}
+					else
+					{
+						for (int i = 0; i < numberGames; i++)
+						{
+							if (mouseX > 60 && mouseX < 510 && mouseY>120 + 70 * i && mouseY < (120 + 70 * i) + 50)
+							{
+								pck.clear();
+								pck << JOIN << (int)i;
+								std::cout << i << std::endl;
+								sock.send(pck, IP_SERVER, PORT_SERVER);
+							}
+						}
+					}
+				}
 				break;
 			default:
 				break;
@@ -783,6 +823,25 @@ void DibujaSFML()
 
 			switch (id)
 			{
+			case MATCHES:
+				pck >> name >> pos;
+				matchNames.push_back(name);
+				matchNumberPlayers.push_back(pos);
+				if (matchNames.size() >=numberGames)
+				{
+					
+					state = GameState::MENU;
+				}
+				break;
+			case JOIN:
+				state = GameState::MACKING;
+				break;
+			case NUMBER_GAMES:
+				pck >> numberGames >> name >> pos;
+				matchNames.push_back(name);
+				matchNumberPlayers.push_back(pos);
+				if (numberGames > 6)numberGames = 6;
+				break;
 			case NEW_USER:
 				clickNewUser = false;
 				tempEmail = "";
@@ -810,7 +869,7 @@ void DibujaSFML()
 				clickChange = false;
 				break;
 			case WELLCOME:
-				pck >> name;
+				/*pck >> name;
 				switch (id)
 				{
 				case 1:
@@ -831,10 +890,11 @@ void DibujaSFML()
 					break;
 				default:
 					break;
-				}
+				}*/
+				pck >> numberGames;
 				clickLogin = false;
 				errorLogin = false;
-				state = GameState::PLAY;
+				if(numberGames==0)state = GameState::MENU;
 				break;
 			case ERROR_LOGIN:
 				tempUserName = "";
@@ -933,6 +993,7 @@ void DibujaSFML()
 			DrawMenu(window);
 			break;
 		case MACKING:
+			DrawMacking(window);
 			break;
 		case PLAY:
 			DrawGame(window);
