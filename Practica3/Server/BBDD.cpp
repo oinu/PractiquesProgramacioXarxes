@@ -146,6 +146,20 @@ void BBDD::UpdateSessionEnd(int idUser)
 
 }
 
+void BBDD::UpdateSessionNumGames(int idUser)
+{
+	std::string s = "SELECT ID,NUM_GAMES FROM Sessions WHERE ID_USER=" + std::to_string(idUser) + " ORDER BY ID DESC LIMIT 1";
+	resulset = stmt->executeQuery(s.c_str());
+	resulset->next();
+	int id = resulset->getInt("ID");
+	int numGames = resulset->getInt("NUM_GAMES");
+	numGames++;
+
+	s = "UPDATE Sessions SET NUM_GAMES = "+std::to_string(numGames)+" WHERE ID = " + std::to_string(id);
+	stmt->execute(s.c_str());
+
+}
+
 void BBDD::ReturnQuestion(std::string& question, std::string& ansA, std::string& ansB, std::string& ansC, std::string& ansD, int& correct, std::vector<int>& idQuestions)
 {
 	std::string s = "SELECT count(*) FROM Questions";

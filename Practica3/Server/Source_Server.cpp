@@ -44,7 +44,7 @@ enum Code
 {
 	XMOVE, YMOVE, HELLO, WELLCOME, XPLAYER1, YPLAYER1, XPLAYER2, YPLAYER2, XPLAYER3, YPLAYER3, XPLAYER4, YPLAYER4,
 	ASK, PLAYERSNAME, STARTTIME, ENDTIME, ENDGAME, ERROR_LOGIN, CHANGE_PASSWORD, ERROR_CHANGE, NEW_USER, ERROR_NEW_USER,
-	NEW_MATCH, NUMBER_GAMES,JOIN,MATCHES, GO, PLAYERREADY,CURRENTPLAYERS,STARTGAME
+	NEW_MATCH, NUMBER_GAMES,JOIN,MATCHES, GO, PLAYERREADY,CURRENTPLAYERS,STARTGAME,EXIT
 };
 sf::UdpSocket sock;
 sf::Socket::Status status = sock.bind(50000);
@@ -529,18 +529,6 @@ int main()
 						{
 							if (games[gameIndex].players.size() == 4)
 							{
-								/*pck.clear();
-								pck << Code::ASK<<games[gameIndex].g->pregunta << games[gameIndex].g->a << games[gameIndex].g->b << games[gameIndex].g->c << games[gameIndex].g->d;
-								for (auto a : games[gameIndex].players)
-								{
-									sock.send(pck, a.ip, a.port);
-								}
-								pck.clear();
-								pck << Code::STARTTIME<<(int)games[gameIndex].currentTime;
-								for (auto a : games[gameIndex].players)
-								{
-									sock.send(pck, a.ip, a.port);
-								}*/
 								CreacionPreguntas(gameIndex);
 								NewGame(gameIndex);
 								pck.clear();
@@ -548,11 +536,25 @@ int main()
 								for (auto a : games[gameIndex].players)
 								{
 									sock.send(pck, a.ip, a.port);
+									bd.UpdateSessionNumGames(a.idPlayer);
 								}
 								pck.clear();
 								games[gameIndex].play = true;
 
 							}
+						}
+						break;
+
+					case EXIT:
+						if (menuPlayerIndex == -1)
+						{
+							bd.UpdateSessionEnd(games[gameIndex].players[playerIndex].idPlayer);
+							games[gameIndex].players.erase(games[gameIndex].players.begin() + playerIndex);
+						}
+						else
+						{
+							bd.UpdateSessionEnd(menuPlayers[menuPlayerIndex].idPlayer);
+							menuPlayers.erase(menuPlayers.begin() + menuPlayerIndex);
 						}
 						break;
 

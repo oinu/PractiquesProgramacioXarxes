@@ -19,7 +19,7 @@ enum Code
 {
 	XMOVE, YMOVE, HELLO, WELLCOME, XPLAYER1, YPLAYER1, XPLAYER2, YPLAYER2, XPLAYER3, YPLAYER3, XPLAYER4, YPLAYER4,
 	ASK, PLAYERSNAME, STARTTIME, ENDTIME, ENDGAME, ERROR_LOGIN, CHANGE_PASSWORD, ERROR_CHANGE, NEW_USER, ERROR_NEW_USER,
-	NEW_MATCH, NUMBER_GAMES, JOIN, MATCHES, GO, PLAYERREADY, CURRENTPLAYERS, STARTGAME
+	NEW_MATCH, NUMBER_GAMES, JOIN, MATCHES, GO, PLAYERREADY, CURRENTPLAYERS, STARTGAME, EXIT
 };
 enum GameState{LOGIN,REGISTER,FORGOT_PASSWORD,MENU,MACKING,PLAY,END};
 
@@ -661,6 +661,10 @@ void DibujaSFML()
 			switch (event.type)
 			{
 			case sf::Event::Closed:
+				pck.clear();
+				pck << Code::EXIT;
+				sock.send(pck, IP_SERVER, PORT_SERVER);
+				pck.clear();
 				window.close();
 				break;
 
@@ -875,6 +879,10 @@ void DibujaSFML()
 					}
 					else if (mouseX > 670 && mouseX < 770 && mouseY>320 && mouseY < 370)
 					{
+						pck.clear();
+						pck << Code::EXIT;
+						sock.send(pck, IP_SERVER, PORT_SERVER);
+						pck.clear();
 						window.close();
 					}
 					else

@@ -38,6 +38,7 @@ public:
 	void ChangeEmail(std::string name, std::string email);
 	void ChangePassword(std::string email, std::string pwd);
 	void UpdateSessionEnd(int idUser);
+	void UpdateSessionNumGames(int idUser);
 	void ReturnQuestion(std::string& question, std::string& ansA, std::string& ansB, std::string& ansC, std::string& ansD, int& correct, std::vector<int>& idQuestions);
 };
 
