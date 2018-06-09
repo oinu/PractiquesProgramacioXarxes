@@ -4,7 +4,7 @@
 #include <thread>
 #include "BBDD.h"
 
-#define IP_PORT "192.168.1.136:3306"
+#define IP_PORT "192.168.1.143:3306"
 #define USER "root"
 #define PWD "linux123"
 #define DATABASE "game"
@@ -13,10 +13,12 @@ struct Player
 {
 	sf::IpAddress ip;
 	unsigned short port;
+	bool ready=false;
 	std::string name;
 	int x;
 	int y;
 	int points;
+	int idPlayer;
 };
 
 struct Question
@@ -34,14 +36,15 @@ struct Game
 	std::vector<Player> players;
 	Question g[5];
 	int preguntaActual = 0;
-	int currentTime = -1;
+	int currentTime = 30;
+	bool play = false;
 };
 
 enum Code
 {
 	XMOVE, YMOVE, HELLO, WELLCOME, XPLAYER1, YPLAYER1, XPLAYER2, YPLAYER2, XPLAYER3, YPLAYER3, XPLAYER4, YPLAYER4,
 	ASK, PLAYERSNAME, STARTTIME, ENDTIME, ENDGAME, ERROR_LOGIN, CHANGE_PASSWORD, ERROR_CHANGE, NEW_USER, ERROR_NEW_USER,
-	NEW_MATCH, NUMBER_GAMES,JOIN,MATCHES
+	NEW_MATCH, NUMBER_GAMES,JOIN,MATCHES, GO, PLAYERREADY,CURRENTPLAYERS,STARTGAME
 };
 sf::UdpSocket sock;
 sf::Socket::Status status = sock.bind(50000);
@@ -58,97 +61,97 @@ std::vector<Player>menuPlayers;
 
 
 
-void ActualizarMarcadores()
+void ActualizarMarcadores(int game)
 {
 	//Mirar las posiciones de los jugadores para determinar que opcion eligio
-	for (int i = 0; i < games[gameIndex].players.size(); i++)
+	for (int i = 0; i < games[game].players.size(); i++)
 	{
-		int x = games[gameIndex].players[i].x + 15;
-		int y = games[gameIndex].players[i].y + 15;
+		int x = games[game].players[i].x + 15;
+		int y = games[game].players[i].y + 15;
 		
 
 		//Opcion A
-		if (x >= 0 && x <= 400 && y >= 200 && y <= 350 && games[gameIndex].g[games[gameIndex].preguntaActual].respuesta == 1)
+		if (x >= 0 && x <= 400 && y >= 200 && y <= 350 && games[game].g[games[game].preguntaActual].respuesta == 1)
 		{
-			games[gameIndex].players[i].points += 10;
+			games[game].players[i].points += 10;
 		}
 
 		//Opcion B
-		else if (x >= 400 && x <= 800 && y >= 200 && y <= 350 && games[gameIndex].g[games[gameIndex].preguntaActual].respuesta == 2)
+		else if (x >= 400 && x <= 800 && y >= 200 && y <= 350 && games[game].g[games[game].preguntaActual].respuesta == 2)
 		{
-			games[gameIndex].players[i].points += 10;
+			games[game].players[i].points += 10;
 		}
 
 		//Opcion C
-		if (x >= 0 && x <= 400 && y >= 350 && y <= 500 && games[gameIndex].g[games[gameIndex].preguntaActual].respuesta == 3)
+		if (x >= 0 && x <= 400 && y >= 350 && y <= 500 && games[game].g[games[game].preguntaActual].respuesta == 3)
 		{
-			games[gameIndex].players[i].points += 10;
+			games[game].players[i].points += 10;
 		}
 
 		//Opcion D
-		else if (x >= 400 && x <= 800 && y >= 350 && y <= 500 && games[gameIndex].g[games[gameIndex].preguntaActual].respuesta == 4)
+		else if (x >= 400 && x <= 800 && y >= 350 && y <= 500 && games[game].g[games[game].preguntaActual].respuesta == 4)
 		{
-			games[gameIndex].players[i].points += 10;
+			games[game].players[i].points += 10;
 		}
 	}
 
 	//Pasamos las puntuaciones
 	pck.clear();
-	pck << ENDTIME << games[gameIndex].players[0].points << games[gameIndex].players[1].points << games[gameIndex].players[2].points << games[gameIndex].players[3].points;
-	for (int i = 0; i < games[gameIndex].players.size(); i++)
+	pck << ENDTIME << games[game].players[0].points << games[game].players[1].points << games[game].players[2].points << games[game].players[3].points;
+	for (int i = 0; i < games[game].players.size(); i++)
 	{
-		sock.send(pck, games[gameIndex].players[i].ip, games[gameIndex].players[i].port);
+		sock.send(pck, games[game].players[i].ip, games[game].players[i].port);
 	}
 	pck.clear();
 
 	//Cambia de pregunta, actualmente hay 5
-	if (games[gameIndex].preguntaActual<4)games[gameIndex].preguntaActual++;
+	if (games[game].preguntaActual<4)games[game].preguntaActual++;
 }
 
-void CreacionPreguntas()
+void CreacionPreguntas(int game)
 {
 	std::vector<int>idQuestions;
 	for (int i = 0; i < 5; i++)
 	{
-		bd.ReturnQuestion(games[gameIndex].g[i].pregunta, games[gameIndex].g[i].a, games[gameIndex].g[i].b, games[gameIndex].g[i].c, games[gameIndex].g[i].d, games[gameIndex].g[i].respuesta,idQuestions);
+		bd.ReturnQuestion(games[game].g[i].pregunta, games[game].g[i].a, games[game].g[i].b, games[game].g[i].c, games[game].g[i].d, games[game].g[i].respuesta,idQuestions);
 	}
 }
 
-void NewGame()
+void NewGame(int game)
 {
 	//Pasar pregunta y repuestas
 	pck.clear();
-	pck << ASK << games[gameIndex].g[games[gameIndex].preguntaActual].pregunta << games[gameIndex].g[games[gameIndex].preguntaActual].a << games[gameIndex].g[games[gameIndex].preguntaActual].b << games[gameIndex].g[games[gameIndex].preguntaActual].c << games[gameIndex].g[games[gameIndex].preguntaActual].d;
-	for (int i = 0; i < games[gameIndex].players.size(); i++)
+	pck << ASK << games[game].g[games[game].preguntaActual].pregunta << games[game].g[games[game].preguntaActual].a << games[game].g[games[game].preguntaActual].b << games[game].g[games[game].preguntaActual].c << games[game].g[games[game].preguntaActual].d;
+	for (int i = 0; i < games[game].players.size(); i++)
 	{
-		sock.send(pck, games[gameIndex].players[i].ip, games[gameIndex].players[i].port);
+		sock.send(pck, games[game].players[i].ip, games[game].players[i].port);
 	}
 	pck.clear();
 
 	//Informar que empieza la partida y el tiempo que tienen.
-	games[gameIndex].currentTime = 30;
+	games[game].currentTime = 30;
 	pck << STARTTIME << 30;
-	for (int i = 0; i < games[gameIndex].players.size(); i++)
+	for (int i = 0; i < games[game].players.size(); i++)
 	{
-		sock.send(pck, games[gameIndex].players[i].ip, games[gameIndex].players[i].port);
+		sock.send(pck, games[game].players[i].ip, games[game].players[i].port);
 	}
 	pck.clear();
 }
 
-void EndGame()
+void EndGame(int game)
 {
 	std::vector<int>ganadores;
 	int points=-1;
 	//Guardamos el indice del jugador ganador
-	for (int i = 0; i < games[gameIndex].players.size(); i++)
+	for (int i = 0; i < games[game].players.size(); i++)
 	{
-		if (games[gameIndex].players[i].points > points)
+		if (games[game].players[i].points > points)
 		{
 			ganadores.clear();
 			ganadores.push_back(i);
-			points = games[gameIndex].players[i].points;
+			points = games[game].players[i].points;
 		}
-		else if (games[gameIndex].players[i].points == points)
+		else if (games[game].players[i].points == points)
 		{
 			ganadores.push_back(i);
 		}
@@ -157,16 +160,23 @@ void EndGame()
 	std::string nombresGanadores;
 	for (int i = 0; i < ganadores.size(); i++)
 	{
-		nombresGanadores += games[gameIndex].players[i].name+ "	";
+		nombresGanadores += games[game].players[i].name+ "	";
 	}
 	//Indicamos el jugador ganador
 	pck.clear();
 	pck << ENDGAME << nombresGanadores + "	WIN!!!";
-	for (int i = 0; i < games[gameIndex].players.size(); i++)
+	for (int i = 0; i < games[game].players.size(); i++)
 	{
-		sock.send(pck, games[gameIndex].players[i].ip, games[gameIndex].players[i].port);
+		sock.send(pck, games[game].players[i].ip, games[game].players[i].port);
 	}
 	pck.clear();
+
+	for (int i = 0; i < 4; i++)
+	{
+		menuPlayers.push_back(games[game].players[i]);
+	}
+	games.erase(games.begin() + game);
+	std::cout << menuPlayers.size();
 }
 
 void ActualizarTime()
@@ -176,14 +186,17 @@ void ActualizarTime()
 	{
 		if (timer.getElapsedTime().asSeconds() >= 1 && games.size()>0)
 		{
-			//Se resta de los segundos restantes
-			games[gameIndex].currentTime--;
-			//Si llega a cero, empieza una nueva
-			if (games[gameIndex].currentTime == 0)
+			for (int i=0; i<games.size();i++)
 			{
-				ActualizarMarcadores();
-				if(games[gameIndex].preguntaActual<4)NewGame();
-				else EndGame();
+				//Se resta de los segundos restantes
+				if (games[i].play)games[i].currentTime--;
+				//Si llega a cero, empieza una nueva
+				if (games[i].currentTime == 0)
+				{
+					ActualizarMarcadores(i);
+					if (games[i].preguntaActual<4)NewGame(i);
+					else EndGame(i);
+				}
 			}
 			timer.restart();
 		}
@@ -200,6 +213,7 @@ int main()
 	}
 
 	bd.SelectDataBase(DATABASE);
+	bd.UpdateSessionEnd(1);
 
 	sf::Clock clock;
 
@@ -248,6 +262,7 @@ int main()
 				{
 					int id, pos;
 					std::string name,email, password;
+					bool ready;
 					pck >> id;
 					Player player;
 					Game g;
@@ -370,6 +385,7 @@ int main()
 						{
 							player.ip = p.ip;
 							player.port = p.port;
+							player.points = 0;
 
 							//Guardamos el nombre recibido
 							std::string pwd, name;
@@ -379,6 +395,8 @@ int main()
 							sf::Packet sendPck;
 							if (u.password == pwd)
 							{
+								bd.InsertSession(u.id);
+								player.idPlayer = u.id;
 								player.name = name;
 								menuPlayers.push_back(player);
 								sendPck << Code::WELLCOME<<(int)games.size();
@@ -397,71 +415,6 @@ int main()
 								sock.send(sendPck, player.ip, player.port);
 							}
 						}
-						/*
-						if (playerIndex == -1 && games[gameIndex].players.size()<4)
-						{
-							//Guardamos la ip, el puerto y le indicamos la puntuacion
-							player.ip = p.ip;
-							player.port = p.port;
-							player.points = 0;
-							
-							//Situamos los jugadores segun van llegando
-							if (games[gameIndex].players.size() == 0)
-							{
-								player.x = 370;
-								player.y = 320;
-							}
-							else if (games[gameIndex].players.size() == 1)
-							{
-								player.x = 430;
-								player.y = 320;
-							}
-							else if (games[gameIndex].players.size() == 2)
-							{
-								player.x = 370;
-								player.y = 380;
-							}
-							else if (games[gameIndex].players.size() == 3)
-							{
-								player.x = 430;
-								player.y = 380;
-							}
-
-							//Guardamos el nombre recibido
-							std::string pwd,name;
-							pck >>name>> pwd;
-							
-							User u = bd.ReturnUserByName(name);
-							sf::Packet sendPck;
-
-							//Usuario y contraseña correctos
-							if (u.password == pwd)
-							{
-								player.name = name;
-								int size = games[gameIndex].players.size();
-								games[gameIndex].players.push_back(player);
-								sendPck << Code::WELLCOME << size;
-								sock.send(sendPck, player.ip, player.port);
-
-								//Cuando llega el ultimo jugador.
-								if (games[gameIndex].players.size() == 4)
-								{
-									NewGame();
-									for (int i = 0; i < games[gameIndex].players.size(); i++)
-									{
-										sendPck.clear();
-										sendPck << PLAYERSNAME << games[gameIndex].players[0].name << games[gameIndex].players[1].name << games[gameIndex].players[2].name << games[gameIndex].players[3].name;
-										sock.send(sendPck, games[gameIndex].players[i].ip, games[gameIndex].players[i].port);
-									}
-								}
-							}
-							else
-							{
-								sendPck << Code::ERROR_LOGIN;
-								sock.send(sendPck, player.ip, player.port);
-							}
-							
-						}*/
 						break;
 					case CHANGE_PASSWORD:
 						pck >> email >> password;
@@ -507,7 +460,7 @@ int main()
 
 						//Metemos el jugador en el creador de partida
 						pck.clear();
-						pck << JOIN;
+						pck << JOIN << 0<< g.players[0].name;
 						sock.send(pck, g.players[0].ip, g.players[0].port);
 
 						//Indicamos que se ha creado una partida nueva
@@ -518,16 +471,90 @@ int main()
 							sock.send(pck, a.ip, a.port);
 						}
 						break;
+
 					case JOIN:
 							pck >> pos;
-							std::cout << pos;
 							games[pos].players.push_back(menuPlayers[menuPlayerIndex]);
 							menuPlayers.erase(menuPlayers.begin() + menuPlayerIndex);
 							player = games[pos].players[games[pos].players.size() - 1];
+							id = games[pos].players.size() - 1;
+
 							pck.clear();
-							pck << JOIN;
+							pck << JOIN<< id;
+							switch (id)
+							{
+							case 1:
+								pck << games[pos].players[0].name << games[pos].players[1].name;
+								break;
+							case 2:
+								pck << games[pos].players[0].name << games[pos].players[1].name << games[pos].players[2].name;
+								break;
+							case 3:
+								pck << games[pos].players[0].name << games[pos].players[1].name << games[pos].players[2].name << games[pos].players[3].name;
+								break;
+							default:
+								break;
+							}
 							sock.send(pck, player.ip, player.port);
+							if (id < 4)
+							{
+								pck.clear();
+								pck << CURRENTPLAYERS << id;
+								pck << player.name;
+								for (int i = 0; i < id; i++)
+								{
+									sock.send(pck, games[pos].players[i].ip, games[pos].players[i].port);
+								}
+								pck.clear();
+							}
 							break;
+					case GO:
+						games[gameIndex].players[playerIndex].ready = true;
+						ready = true;
+						for (auto a : games[gameIndex].players)
+						{
+							if (!a.ready) ready = false;
+						}
+						if (!ready)
+						{
+							pck.clear();
+							pck << Code::PLAYERREADY << (int)playerIndex;
+							for (auto a : games[gameIndex].players)
+							{
+								sock.send(pck, a.ip, a.port);
+							}
+							pck.clear();
+						}
+						else
+						{
+							if (games[gameIndex].players.size() == 4)
+							{
+								/*pck.clear();
+								pck << Code::ASK<<games[gameIndex].g->pregunta << games[gameIndex].g->a << games[gameIndex].g->b << games[gameIndex].g->c << games[gameIndex].g->d;
+								for (auto a : games[gameIndex].players)
+								{
+									sock.send(pck, a.ip, a.port);
+								}
+								pck.clear();
+								pck << Code::STARTTIME<<(int)games[gameIndex].currentTime;
+								for (auto a : games[gameIndex].players)
+								{
+									sock.send(pck, a.ip, a.port);
+								}*/
+								CreacionPreguntas(gameIndex);
+								NewGame(gameIndex);
+								pck.clear();
+								pck << Code::STARTGAME;
+								for (auto a : games[gameIndex].players)
+								{
+									sock.send(pck, a.ip, a.port);
+								}
+								pck.clear();
+								games[gameIndex].play = true;
+
+							}
+						}
+						break;
 
 					default:
 						break;

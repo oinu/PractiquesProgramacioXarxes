@@ -28,6 +28,7 @@ public:
 	~BBDD();
 	void SelectDataBase(std::string db);
 	bool InsertUser(std::string name, std::string password, std::string email);
+	bool InsertSession(int idUser);
 	bool ExistUser(std::string name);
 	bool ExistEmail(std::string email);
 	User ReturnUserByName(std::string name);
@@ -36,6 +37,7 @@ public:
 	void ChangeNameUser(std::string actual, std::string newName);
 	void ChangeEmail(std::string name, std::string email);
 	void ChangePassword(std::string email, std::string pwd);
+	void UpdateSessionEnd(int idUser);
 	void ReturnQuestion(std::string& question, std::string& ansA, std::string& ansB, std::string& ansC, std::string& ansD, int& correct, std::vector<int>& idQuestions);
 };
 

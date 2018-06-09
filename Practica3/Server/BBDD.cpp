@@ -42,6 +42,13 @@ bool BBDD::InsertUser(std::string name, std::string password, std::string email)
 	}
 }
 
+bool BBDD::InsertSession(int idUser)
+{
+	std::string s = "INSERT INTO Sessions(ID_USER,NUM_GAMES) VALUES('" + std::to_string(idUser) + "',0)";
+	stmt->execute(s.c_str());
+	return true;
+}
+
 bool BBDD::ExistUser(std::string name)
 {
 	std::string s = "SELECT * FROM Users WHERE Name='" + name+"'";
@@ -125,6 +132,18 @@ void BBDD::ChangePassword(std::string email, std::string pwd)
 {
 	std::string s = "UPDATE Users SET Password ='" + pwd + "' WHERE Email='" + email + "'";
 	stmt->execute(s.c_str());
+}
+
+void BBDD::UpdateSessionEnd(int idUser)
+{
+	std::string s ="SELECT ID FROM Sessions WHERE ID_USER=" + std::to_string(idUser) + " ORDER BY ID DESC LIMIT 1";
+	resulset=stmt->executeQuery(s.c_str());
+	resulset->next();
+	int id = resulset->getInt("ID");
+
+	s = "UPDATE Sessions SET END = CURRENT_TIMESTAMP WHERE ID = " + std::to_string(id);
+	stmt->execute(s.c_str());
+
 }
 
 void BBDD::ReturnQuestion(std::string& question, std::string& ansA, std::string& ansB, std::string& ansC, std::string& ansD, int& correct, std::vector<int>& idQuestions)

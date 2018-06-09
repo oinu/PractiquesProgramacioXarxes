@@ -11,6 +11,7 @@ struct Player
 	int x, previusX;
 	int y, previusY;
 	int size;
+	bool ready=false;
 	int points;
 	sf::RectangleShape rect,rectPoints;
 };
@@ -18,7 +19,7 @@ enum Code
 {
 	XMOVE, YMOVE, HELLO, WELLCOME, XPLAYER1, YPLAYER1, XPLAYER2, YPLAYER2, XPLAYER3, YPLAYER3, XPLAYER4, YPLAYER4,
 	ASK, PLAYERSNAME, STARTTIME, ENDTIME, ENDGAME, ERROR_LOGIN, CHANGE_PASSWORD, ERROR_CHANGE, NEW_USER, ERROR_NEW_USER,
-	NEW_MATCH, NUMBER_GAMES, JOIN, MATCHES
+	NEW_MATCH, NUMBER_GAMES, JOIN, MATCHES, GO, PLAYERREADY, CURRENTPLAYERS, STARTGAME
 };
 enum GameState{LOGIN,REGISTER,FORGOT_PASSWORD,MENU,MACKING,PLAY,END};
 
@@ -44,7 +45,7 @@ GameState state = GameState::LOGIN;
 bool clickLogin,clickChange,clickNewUser;
 
 bool introUserName, introPassword, introEmail,errorLogin,errorForget,errorNew;
-std::string tempUserName, tempPwd, tempEmail;
+std::string tempUserName, tempPwd, tempEmail,mensaje;
 int numberGames = 0;
 std::vector<std::string>matchNames;
 std::vector<int>matchNumberPlayers;
@@ -508,6 +509,97 @@ void DrawMacking(sf::RenderWindow& window)
 	background.setSize(sf::Vector2f(780, 580));
 	background.setFillColor(sf::Color(150, 150, 150, 255));
 	window.draw(background);
+
+	//Conversacion
+	background.setPosition(20, 40);
+	background.setSize(sf::Vector2f(450, 450));
+	background.setFillColor(sf::Color(100, 100, 100, 255));
+	window.draw(background);
+	sf::Text t("New User", font, 20);
+	t.setPosition(40, 60);
+	t.setFillColor(sf::Color(255, 255, 255));
+	t.setStyle(sf::Text::Regular);
+	window.draw(t);
+
+	background.setPosition(20, 490);
+	background.setSize(sf::Vector2f(450, 10));
+	background.setFillColor(sf::Color(255, 255, 255, 255));
+	window.draw(background);
+
+	background.setPosition(20, 500);
+	background.setSize(sf::Vector2f(450, 50));
+	background.setFillColor(sf::Color(100, 100, 100, 255));
+	window.draw(background);
+	t.setPosition(40, 510);
+	t.setFillColor(sf::Color(255, 255, 255));
+	window.draw(t);
+
+	//Usuaris
+	background.setPosition(550, 40);
+	background.setSize(sf::Vector2f(150, 50));
+	background.setFillColor(sf::Color(100, 100, 100, 255));
+	window.draw(background);
+	t.setString(p1.name);
+	t.setPosition(560, 50);
+	t.setFillColor(sf::Color::Green);
+	t.setStyle(sf::Text::Regular);
+	window.draw(t);
+
+	if (p2.name != "")
+	{
+		background.setPosition(550, 100);
+		background.setSize(sf::Vector2f(150, 50));
+		background.setFillColor(sf::Color(100, 100, 100, 255));
+		window.draw(background);
+		t.setString(p2.name);
+		t.setPosition(560, 110);
+		t.setFillColor(sf::Color::Blue);
+		t.setStyle(sf::Text::Regular);
+		window.draw(t);
+	}
+	
+	if (p3.name != "")
+	{
+		background.setPosition(550, 160);
+		background.setSize(sf::Vector2f(150, 50));
+		background.setFillColor(sf::Color(100, 100, 100, 255));
+		window.draw(background);
+		t.setString(p3.name);
+		t.setPosition(560, 170);
+		t.setFillColor(sf::Color::Red);
+		t.setStyle(sf::Text::Regular);
+		window.draw(t);
+	}
+
+	if (p4.name != "")
+	{
+		background.setPosition(550, 220);
+		background.setSize(sf::Vector2f(150, 50));
+		background.setFillColor(sf::Color(100, 100, 100, 255));
+		window.draw(background);
+		t.setString(p4.name);
+		t.setPosition(560, 230);
+		t.setFillColor(sf::Color::Yellow);
+		t.setStyle(sf::Text::Regular);
+		window.draw(t);
+	}
+
+	//GO button
+	//if (!localPlayer->ready)
+	if (!p1.ready)
+	{
+		background.setPosition(550, 500);
+		background.setSize(sf::Vector2f(150, 50));
+		background.setFillColor(sf::Color(100, 100, 100, 255));
+		window.draw(background);
+		t.setString("GO!");
+		t.setCharacterSize(30);
+		t.setPosition(595, 505);
+		t.setFillColor(sf::Color::White);
+		t.setStyle(sf::Text::Bold);
+		window.draw(t);
+	}
+
 }
 
 void Login()
@@ -793,10 +885,18 @@ void DibujaSFML()
 							{
 								pck.clear();
 								pck << JOIN << (int)i;
-								std::cout << i << std::endl;
 								sock.send(pck, IP_SERVER, PORT_SERVER);
 							}
 						}
+					}
+				}
+				else if (state == GameState::MACKING)
+				{
+					if (mouseX >= 550 && mouseX <= 700 && mouseY >= 500 && mouseY <= 550)
+					{
+						pck.clear();
+						pck << Code::GO;
+						sock.send(pck, IP_SERVER, PORT_SERVER);
 					}
 				}
 				break;
@@ -823,6 +923,45 @@ void DibujaSFML()
 
 			switch (id)
 			{
+			case STARTGAME:
+				state = GameState::PLAY;
+				break;
+			case CURRENTPLAYERS:
+				pck >> pos >> name;
+				switch (pos)
+				{
+				case 1:
+					p2.name = name;
+					break;
+				case 2:
+					p3.name = name;
+					break;
+				case 3:
+					p4.name = name;
+					break;
+				default:
+					break;
+				}
+			case PLAYERREADY:
+				pck >> pos;
+				switch (pos)
+				{
+				case 0:
+					p1.ready = true;
+					break;
+				case 1:
+					p2.ready = true;
+					break;
+				case 2:
+					p3.ready = true;
+					break;
+				case 3: 
+					p4.ready = true;
+					break;
+				default:
+					break;
+				}
+				break;
 			case MATCHES:
 				pck >> name >> pos;
 				matchNames.push_back(name);
@@ -834,6 +973,46 @@ void DibujaSFML()
 				}
 				break;
 			case JOIN:
+				pck >> pos;
+				switch (pos)
+				{
+				case 0:
+					pck >> name;
+					localPlayer=&p1;
+					localPlayer->name = name;
+					break;
+				case 1:
+					localPlayer = &p2;
+					pck >> name;
+					p1.name = name;
+					pck >> name;
+					p2.name = name;
+					break;
+				case 2:
+					localPlayer = &p3;
+					pck >> name;
+					p1.name = name;
+					pck >> name;
+					p2.name = name;
+					pck >> name;
+					p3.name = name;
+					break;
+				case 3:
+					localPlayer = &p4;
+					pck >> name;
+					p1.name = name;
+					pck >> name;
+					p2.name = name;
+					pck >> name;
+					p3.name = name;
+					pck >> name;
+					p4.name = name;
+					break;
+				default:
+					break;
+				}
+				localPlayer->name = tempUserName;
+
 				state = GameState::MACKING;
 				break;
 			case NUMBER_GAMES:
@@ -869,28 +1048,6 @@ void DibujaSFML()
 				clickChange = false;
 				break;
 			case WELLCOME:
-				/*pck >> name;
-				switch (id)
-				{
-				case 1:
-					localPlayer = &p1;
-					localPlayer->name = name;
-					break;
-				case 2:
-					localPlayer = &p2;
-					localPlayer->name = name;
-					break;
-				case 3:
-					localPlayer = &p3;
-					localPlayer->name = name;
-					break;
-				case 4:
-					localPlayer = &p4;
-					localPlayer->name = name;
-					break;
-				default:
-					break;
-				}*/
 				pck >> numberGames;
 				clickLogin = false;
 				errorLogin = false;

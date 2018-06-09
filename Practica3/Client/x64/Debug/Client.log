@@ -1,11 +1,11 @@
 ﻿  Source_Client.cpp
-c:\users\alumne\desktop\practiquesprogramacioxarxes\practica3\client\source_client.cpp(87): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-c:\users\alumne\desktop\practiquesprogramacioxarxes\practica3\client\source_client.cpp(98): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-c:\users\alumne\desktop\practiquesprogramacioxarxes\practica3\client\source_client.cpp(108): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-c:\users\alumne\desktop\practiquesprogramacioxarxes\practica3\client\source_client.cpp(117): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-c:\users\alumne\desktop\practiquesprogramacioxarxes\practica3\client\source_client.cpp(155): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-c:\users\alumne\desktop\practiquesprogramacioxarxes\practica3\client\source_client.cpp(1025): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-c:\users\alumne\desktop\practiquesprogramacioxarxes\practica3\client\source_client.cpp(1039): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-c:\users\alumne\desktop\practiquesprogramacioxarxes\practica3\client\source_client.cpp(1053): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-c:\users\alumne\desktop\practiquesprogramacioxarxes\practica3\client\source_client.cpp(1067): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\alumne\desktop\practiquesprogramacioxarxes\practica3\client\source_client.cpp(88): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\alumne\desktop\practiquesprogramacioxarxes\practica3\client\source_client.cpp(99): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\alumne\desktop\practiquesprogramacioxarxes\practica3\client\source_client.cpp(109): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\alumne\desktop\practiquesprogramacioxarxes\practica3\client\source_client.cpp(118): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\alumne\desktop\practiquesprogramacioxarxes\practica3\client\source_client.cpp(156): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\alumne\desktop\practiquesprogramacioxarxes\practica3\client\source_client.cpp(1182): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\alumne\desktop\practiquesprogramacioxarxes\practica3\client\source_client.cpp(1196): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\alumne\desktop\practiquesprogramacioxarxes\practica3\client\source_client.cpp(1210): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\alumne\desktop\practiquesprogramacioxarxes\practica3\client\source_client.cpp(1224): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
   Client.vcxproj -> C:\Users\alumne\Desktop\PractiquesProgramacioXarxes\Practica3\x64\Debug\Client.exe
