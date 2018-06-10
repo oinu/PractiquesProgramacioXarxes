@@ -34,6 +34,7 @@ struct Question
 struct Game
 {
 	std::vector<Player> players;
+	std::vector<std::string>text;
 	Question g[5];
 	int preguntaActual = 0;
 	int currentTime = 30;
@@ -44,7 +45,7 @@ enum Code
 {
 	XMOVE, YMOVE, HELLO, WELLCOME, XPLAYER1, YPLAYER1, XPLAYER2, YPLAYER2, XPLAYER3, YPLAYER3, XPLAYER4, YPLAYER4,
 	ASK, PLAYERSNAME, STARTTIME, ENDTIME, ENDGAME, ERROR_LOGIN, CHANGE_PASSWORD, ERROR_CHANGE, NEW_USER, ERROR_NEW_USER,
-	NEW_MATCH, NUMBER_GAMES,JOIN,MATCHES, GO, PLAYERREADY,CURRENTPLAYERS,STARTGAME,EXIT
+	NEW_MATCH, NUMBER_GAMES,JOIN,MATCHES, GO, PLAYERREADY,CURRENTPLAYERS,STARTGAME,EXIT,UPDATEMATCHES, MENSAJE
 };
 sf::UdpSocket sock;
 sf::Socket::Status status = sock.bind(50000);
@@ -176,7 +177,22 @@ void EndGame(int game)
 		menuPlayers.push_back(games[game].players[i]);
 	}
 	games.erase(games.begin() + game);
-	std::cout << menuPlayers.size();
+	
+	//Hacer el paquete
+	pck.clear();
+	int size = games.size();
+	if (size > 6)size = 6;
+	pck << UPDATEMATCHES << size;
+	for (int i=0; i<size; i++)
+	{
+		pck << games[i].players[0].name << (int)games[i].players.size();
+	}
+
+	for (auto a : menuPlayers)
+	{
+		sock.send(pck, a.ip, a.port);
+	}
+	pck.clear();
 }
 
 void ActualizarTime()
@@ -474,38 +490,41 @@ int main()
 
 					case JOIN:
 							pck >> pos;
-							games[pos].players.push_back(menuPlayers[menuPlayerIndex]);
-							menuPlayers.erase(menuPlayers.begin() + menuPlayerIndex);
-							player = games[pos].players[games[pos].players.size() - 1];
-							id = games[pos].players.size() - 1;
+							if (games[pos].players.size() < 4)
+							{
+								games[pos].players.push_back(menuPlayers[menuPlayerIndex]);
+								menuPlayers.erase(menuPlayers.begin() + menuPlayerIndex);
+								player = games[pos].players[games[pos].players.size() - 1];
+								id = games[pos].players.size() - 1;
 
-							pck.clear();
-							pck << JOIN<< id;
-							switch (id)
-							{
-							case 1:
-								pck << games[pos].players[0].name << games[pos].players[1].name;
-								break;
-							case 2:
-								pck << games[pos].players[0].name << games[pos].players[1].name << games[pos].players[2].name;
-								break;
-							case 3:
-								pck << games[pos].players[0].name << games[pos].players[1].name << games[pos].players[2].name << games[pos].players[3].name;
-								break;
-							default:
-								break;
-							}
-							sock.send(pck, player.ip, player.port);
-							if (id < 4)
-							{
 								pck.clear();
-								pck << CURRENTPLAYERS << id;
-								pck << player.name;
-								for (int i = 0; i < id; i++)
+								pck << JOIN << id;
+								switch (id)
 								{
-									sock.send(pck, games[pos].players[i].ip, games[pos].players[i].port);
+								case 1:
+									pck << games[pos].players[0].name << games[pos].players[1].name;
+									break;
+								case 2:
+									pck << games[pos].players[0].name << games[pos].players[1].name << games[pos].players[2].name;
+									break;
+								case 3:
+									pck << games[pos].players[0].name << games[pos].players[1].name << games[pos].players[2].name << games[pos].players[3].name;
+									break;
+								default:
+									break;
 								}
-								pck.clear();
+								sock.send(pck, player.ip, player.port);
+								if (id < 4)
+								{
+									pck.clear();
+									pck << CURRENTPLAYERS << id;
+									pck << player.name;
+									for (int i = 0; i < id; i++)
+									{
+										sock.send(pck, games[pos].players[i].ip, games[pos].players[i].port);
+									}
+									pck.clear();
+								}
 							}
 							break;
 					case GO:
@@ -555,6 +574,28 @@ int main()
 						{
 							bd.UpdateSessionEnd(menuPlayers[menuPlayerIndex].idPlayer);
 							menuPlayers.erase(menuPlayers.begin() + menuPlayerIndex);
+						}
+						break;
+
+					case MENSAJE:
+						pck >> name;
+						name = games[gameIndex].players[playerIndex].name + ": " + name;
+						if (games[gameIndex].text.size() == 15)
+						{
+							games[gameIndex].text.erase(games[gameIndex].text.begin());
+						}
+						games[gameIndex].text.push_back(name);
+						name = "";
+						for (std::string s : games[gameIndex].text)
+						{
+							name += s + "\n";
+						}
+
+						pck.clear();
+						pck<<MENSAJE << name;
+						for (Player a : games[gameIndex].players)
+						{
+							sock.send(pck, a.ip, a.port);
 						}
 						break;
 

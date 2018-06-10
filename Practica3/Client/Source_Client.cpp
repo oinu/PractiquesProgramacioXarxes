@@ -19,7 +19,7 @@ enum Code
 {
 	XMOVE, YMOVE, HELLO, WELLCOME, XPLAYER1, YPLAYER1, XPLAYER2, YPLAYER2, XPLAYER3, YPLAYER3, XPLAYER4, YPLAYER4,
 	ASK, PLAYERSNAME, STARTTIME, ENDTIME, ENDGAME, ERROR_LOGIN, CHANGE_PASSWORD, ERROR_CHANGE, NEW_USER, ERROR_NEW_USER,
-	NEW_MATCH, NUMBER_GAMES, JOIN, MATCHES, GO, PLAYERREADY, CURRENTPLAYERS, STARTGAME, EXIT
+	NEW_MATCH, NUMBER_GAMES, JOIN, MATCHES, GO, PLAYERREADY, CURRENTPLAYERS, STARTGAME, EXIT, UPDATEMATCHES, MENSAJE
 };
 enum GameState{LOGIN,REGISTER,FORGOT_PASSWORD,MENU,MACKING,PLAY,END};
 
@@ -45,7 +45,7 @@ GameState state = GameState::LOGIN;
 bool clickLogin,clickChange,clickNewUser;
 
 bool introUserName, introPassword, introEmail,errorLogin,errorForget,errorNew;
-std::string tempUserName, tempPwd, tempEmail,mensaje;
+std::string tempUserName, tempPwd, tempEmail,mensaje,texto;
 int numberGames = 0;
 std::vector<std::string>matchNames;
 std::vector<int>matchNumberPlayers;
@@ -515,7 +515,7 @@ void DrawMacking(sf::RenderWindow& window)
 	background.setSize(sf::Vector2f(450, 450));
 	background.setFillColor(sf::Color(100, 100, 100, 255));
 	window.draw(background);
-	sf::Text t("New User", font, 20);
+	sf::Text t(texto, font, 20);
 	t.setPosition(40, 60);
 	t.setFillColor(sf::Color(255, 255, 255));
 	t.setStyle(sf::Text::Regular);
@@ -530,6 +530,7 @@ void DrawMacking(sf::RenderWindow& window)
 	background.setSize(sf::Vector2f(450, 50));
 	background.setFillColor(sf::Color(100, 100, 100, 255));
 	window.draw(background);
+	t.setString(mensaje);
 	t.setPosition(40, 510);
 	t.setFillColor(sf::Color(255, 255, 255));
 	window.draw(t);
@@ -701,6 +702,16 @@ void DibujaSFML()
 						sock.send(pckDown, IP_SERVER, PORT_SERVER);
 					}
 				}
+				else if (state == GameState::MACKING)
+				{
+					if (event.key.code == sf::Keyboard::Return && mensaje!="")
+					{
+						pck.clear();
+						pck << Code::MENSAJE << mensaje;
+						sock.send(pck, IP_SERVER, PORT_SERVER);
+						mensaje.clear();
+					}
+				}
 				break;
 			case sf::Event::TextEntered:
 				if (introUserName)
@@ -723,6 +734,14 @@ void DibujaSFML()
 						tempEmail += (char)event.text.unicode;
 					else if (event.text.unicode == 8 && tempEmail.size() > 0)
 						tempEmail.erase(tempEmail.size() - 1, tempEmail.size());
+				}
+
+				if (state == GameState::MACKING)
+				{
+					if (event.text.unicode >= 32 && event.text.unicode <= 126)
+						mensaje += (char)event.text.unicode;
+					else if (event.text.unicode == 8 && mensaje.size() > 0)
+						mensaje.erase(mensaje.size() - 1, mensaje.size());
 				}
 				break;
 			case sf::Event::MouseButtonPressed:
@@ -924,13 +943,28 @@ void DibujaSFML()
 		sf::Socket::Status status = sock.receive(pck, ipRem, portRem);
 		if (status == sf::Socket::Done)
 		{
-			int id,pos;
+			int id,pos,size;
 			std::string name;
 
 			pck >> id;
 
 			switch (id)
 			{
+			case MENSAJE:
+				pck >> texto;
+				break;
+			case UPDATEMATCHES:
+				matchNames.clear();
+				matchNumberPlayers.clear();
+				pck >> size;
+				numberGames = size;
+				for (int i = 0; i < size; i++)
+				{
+					pck >> name >> pos;
+					matchNames.push_back(name);
+					matchNumberPlayers.push_back(pos);
+				}
+				break;
 			case STARTGAME:
 				state = GameState::PLAY;
 				break;
@@ -1124,6 +1158,7 @@ void DibujaSFML()
 				pck >> p1.points>>p2.points>>p3.points>>p4.points;
 				break;
 			case ENDGAME:
+				currentTime = 5;
 				state = GameState::END;
 				pck >> pregunta;
 				a = "";
@@ -1168,6 +1203,7 @@ void DibujaSFML()
 			t.setStyle(sf::Text::Bold);
 			t.setPosition(120, 230);
 			window.draw(t);
+			if (currentTime == 0)state = GameState::MENU;
 			break;
 		default:
 			break;
