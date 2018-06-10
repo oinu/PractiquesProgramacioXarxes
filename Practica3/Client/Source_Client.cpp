@@ -967,6 +967,7 @@ void DibujaSFML()
 				break;
 			case STARTGAME:
 				state = GameState::PLAY;
+				texto = "";
 				break;
 			case CURRENTPLAYERS:
 				pck >> pos >> name;

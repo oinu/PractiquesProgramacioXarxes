@@ -229,7 +229,6 @@ int main()
 	}
 
 	bd.SelectDataBase(DATABASE);
-	bd.UpdateSessionEnd(1);
 
 	sf::Clock clock;
 
