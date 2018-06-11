@@ -1,4 +1,4 @@
 ﻿  Main.cpp
-c:\users\alumne\desktop\practiquesprogramacioxarxes\practia1\client\game.h(26): warning C4305: 'argument': truncation from 'double' to 'float'
-c:\users\alumne\desktop\practiquesprogramacioxarxes\practia1\client\main.cpp(267): warning C4244: 'argument': conversion from '::size_t' to 'float', possible loss of data
+c:\users\alumne\desktop\practiquesprogramacioxarxes\practia1\client\game.h(27): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\alumne\desktop\practiquesprogramacioxarxes\practia1\client\main.cpp(295): warning C4244: 'argument': conversion from '::size_t' to 'float', possible loss of data
   Client.vcxproj -> C:\Users\alumne\Desktop\PractiquesProgramacioXarxes\Practia1\x64\Debug\Client.exe

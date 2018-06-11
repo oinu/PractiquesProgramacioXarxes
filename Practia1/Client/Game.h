@@ -6,6 +6,7 @@
 #include <vector>
 
 enum Palos{ DIAMANTE, TREBOL, PICA, CORAZON, OCULTO };
+enum Code{MENSAJE};
 
 struct Carta
 {
@@ -59,6 +60,7 @@ struct Player
 		cantidadApostada = 0;
 	}
 };
+
 class Game
 {
 public:

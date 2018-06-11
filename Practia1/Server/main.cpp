@@ -30,13 +30,15 @@ void DisconnectUser(vector<sf::TcpSocket*>& list, sf::SocketSelector *ss, int i)
 
 	
 	//Informamos que un usuario se ha desconectado
+	//TO DO
+
+
+	/*
 	for (sf::TcpSocket* socket : list)
 	{
 		string outMsn = std::to_string(0)+"A User Disconected";
 		socket->send(outMsn.c_str(), outMsn.size() + 1);
-	}
-
-	cout << "User Disconnected" << endl;
+	}*/
 }
 
 int main()
@@ -83,9 +85,11 @@ int main()
 					socketList.push_back(socket);
 				}
 				ss.add(*socket);
-
+				
 				//Les indicamos que se ha connectado un nuevo usuario
-				msn = std::to_string(0)+"New User Connected!";
+				//TO DO
+
+				/*msn = std::to_string(0)+"New User Connected!";
 				for (sf::TcpSocket* s : socketList)
 				{
 					if (s == socketList[0] && socketList.size()== 4)
@@ -96,6 +100,7 @@ int main()
 					if(s!=socket)s->send(msn.c_str(), msn.size() + 1);
 				}
 				cout << "New User Connecte" << endl;
+				*/
 			}
 
 			//Si no es el listener, sera un socket
@@ -109,111 +114,130 @@ int main()
 					if (ss.isReady(*socketList[j]))
 					{
 						//Recivimos el mensaje.
-						socketStatus = socketList[j]->receive(buffer, sizeof(buffer), recived);
+						sf::Packet pck;
+						socketStatus = socketList[j]->receive(pck);
 
 						//Pasar el contenido del buffer, al string de mensaje.
 						if (socketStatus == sf::TcpSocket::Status::Done)
 						{
-							msn = buffer;
-							int codigo = atoi(&buffer[0]);
-							sf::TcpSocket::Status st;
-							switch (codigo)
+							int code;
+							string text;
+							pck >> code;
+
+							if (code == Code::MENSAJE)
 							{
-							case 0:
-								//Enviamos el mensajes
-								/*for (int i = 0; i < socketList.size(); i++)
+								pck >> text;
+								sf::Packet send;
+								send << Code::MENSAJE << text;
+								for (auto s : socketList)
 								{
-									st = socketList[i]->send(msn.c_str(), msn.size() + 1);
-
-									if (st == sf::TcpSocket::Status::Error)
-									{
-										cout << "Error al enviar" << endl;
-									}
-
-								}*/
-								break;
-							case 1:
-								msn.clear();
-								//Subimos la cantidad para apostar
-								game.apuestaActual += 10;
-
-								//Le restamos dicha cantidad al jugador
-								game.listPlayers[jugadorActual].efectivo -= game.apuestaActual;
-
-								//Sumamos la cantidad a la mesa
-								game.efectivoMesa += game.apuestaActual;
-								
-								//Le indicamos que la tranasacion es correcta
-								msn = to_string(6)+to_string(game.apuestaActual);
-
-
-								/*st = socketList[j]->send(msn.c_str(), msn.size() + 1);
-								if (st == sf::TcpSocket::Status::Done)
-								{
-									cout << "ENVIADO" << endl;
-								}*/
-
-								//Pasamos de turno
-								/*jugadorActual++;
-								if (jugadorActual == 3)jugadorActual = 0;
-								msn = to_string(4);
-								socketList[jugadorActual]->send(msn.c_str(), msn.size() + 1);*/
-
-							break;
-							case 2:
-								msn.clear();
-								//Le restamos dicha cantidad al jugador
-								game.listPlayers[jugadorActual].efectivo -= game.apuestaActual;
-
-								//Sumamos la cantidad a la mesa
-								game.efectivoMesa += game.apuestaActual;
-
-								//Le indicamos que la tranasacion es correcta
-								msn = to_string(7) + to_string(game.apuestaActual);
-
-
-								/*st = socketList[j]->send(msn.c_str(), msn.size() + 1);
-								if (st == sf::TcpSocket::Status::Done)
-								{
-									cout << "ENVIADO" << endl;
-								}*/
-
-								//Pasamos de turno
-								/*jugadorActual++;
-								if (jugadorActual == 3)jugadorActual = 0;
-								msn = to_string(4);
-								socketList[jugadorActual]->send(msn.c_str(), msn.size() + 1);*/
-
-								break;
-							case 3:
-								msn.clear();
-								//Le indicamos que la tranasacion es correcta
-								/*msn = to_string(8) + to_string(game.apuestaActual);
-								st = socketList[j]->send(msn.c_str(), msn.size() + 1);*/
-
-								//Pasamos de turno
-								/*jugadorActual++;
-								if (jugadorActual == 3)jugadorActual = 0;
-								msn = to_string(4);
-								st=socketList[jugadorActual]->send(msn.c_str(), msn.size() + 1);
-								if (st == sf::TcpSocket::Status::Done)
-								{
-									cout << "ENVIADO" << endl;
-								}*/
-								break;
-							default:
-								break;
-							}
-							for (int i = 0; i < socketList.size(); i++)
-							{
-								cout << "Mensaje: " + msn << endl;
-								st = socketList[i]->send(msn.c_str(), msn.size() + 1);
-
-								if (st == sf::TcpSocket::Status::Error)
-								{
-									cout << "Error al enviar" << endl;
+									s->send(send);
 								}
+							}
+							//TO DO
 
+							{
+								//msn = buffer;
+								//int codigo = atoi(&buffer[0]);
+								//sf::TcpSocket::Status st;
+								//switch (codigo)
+								//{
+								//case 0:
+								//	//Enviamos el mensajes
+								//	/*for (int i = 0; i < socketList.size(); i++)
+								//	{
+								//		st = socketList[i]->send(msn.c_str(), msn.size() + 1);
+
+								//		if (st == sf::TcpSocket::Status::Error)
+								//		{
+								//			cout << "Error al enviar" << endl;
+								//		}
+
+								//	}*/
+								//	break;
+								//case 1:
+								//	msn.clear();
+								//	//Subimos la cantidad para apostar
+								//	game.apuestaActual += 10;
+
+								//	//Le restamos dicha cantidad al jugador
+								//	game.listPlayers[jugadorActual].efectivo -= game.apuestaActual;
+
+								//	//Sumamos la cantidad a la mesa
+								//	game.efectivoMesa += game.apuestaActual;
+								//	
+								//	//Le indicamos que la tranasacion es correcta
+								//	msn = to_string(6)+to_string(game.apuestaActual);
+
+
+								//	/*st = socketList[j]->send(msn.c_str(), msn.size() + 1);
+								//	if (st == sf::TcpSocket::Status::Done)
+								//	{
+								//		cout << "ENVIADO" << endl;
+								//	}*/
+
+								//	//Pasamos de turno
+								//	/*jugadorActual++;
+								//	if (jugadorActual == 3)jugadorActual = 0;
+								//	msn = to_string(4);
+								//	socketList[jugadorActual]->send(msn.c_str(), msn.size() + 1);*/
+
+								//break;
+								//case 2:
+								//	msn.clear();
+								//	//Le restamos dicha cantidad al jugador
+								//	game.listPlayers[jugadorActual].efectivo -= game.apuestaActual;
+
+								//	//Sumamos la cantidad a la mesa
+								//	game.efectivoMesa += game.apuestaActual;
+
+								//	//Le indicamos que la tranasacion es correcta
+								//	msn = to_string(7) + to_string(game.apuestaActual);
+
+
+								//	/*st = socketList[j]->send(msn.c_str(), msn.size() + 1);
+								//	if (st == sf::TcpSocket::Status::Done)
+								//	{
+								//		cout << "ENVIADO" << endl;
+								//	}*/
+
+								//	//Pasamos de turno
+								//	/*jugadorActual++;
+								//	if (jugadorActual == 3)jugadorActual = 0;
+								//	msn = to_string(4);
+								//	socketList[jugadorActual]->send(msn.c_str(), msn.size() + 1);*/
+
+								//	break;
+								//case 3:
+								//	msn.clear();
+								//	//Le indicamos que la tranasacion es correcta
+								//	/*msn = to_string(8) + to_string(game.apuestaActual);
+								//	st = socketList[j]->send(msn.c_str(), msn.size() + 1);*/
+
+								//	//Pasamos de turno
+								//	/*jugadorActual++;
+								//	if (jugadorActual == 3)jugadorActual = 0;
+								//	msn = to_string(4);
+								//	st=socketList[jugadorActual]->send(msn.c_str(), msn.size() + 1);
+								//	if (st == sf::TcpSocket::Status::Done)
+								//	{
+								//		cout << "ENVIADO" << endl;
+								//	}*/
+								//	break;
+								//default:
+								//	break;
+								//}
+								//for (int i = 0; i < socketList.size(); i++)
+								//{
+								//	cout << "Mensaje: " + msn << endl;
+								//	st = socketList[i]->send(msn.c_str(), msn.size() + 1);
+
+								//	if (st == sf::TcpSocket::Status::Error)
+								//	{
+								//		cout << "Error al enviar" << endl;
+								//	}
+
+								//}
 							}
 						}
 

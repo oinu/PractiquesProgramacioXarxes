@@ -25,7 +25,7 @@ void RecivedFunction(sf::TcpSocket* socket,size_t* recived, vector<string>* aMen
 {
 	while (window->isOpen())
 	{
-		char buffer[BUFFER_SIZE];
+		/*char buffer[BUFFER_SIZE];
 		int codigo;
 		int cantidad;
 		string s;
@@ -73,7 +73,7 @@ void RecivedFunction(sf::TcpSocket* socket,size_t* recived, vector<string>* aMen
 				/*game.listPlayers[0].efectivo -= cantidad;
 				game.apuestaActual += 10;
 				game.efectivoMesa += cantidad;
-				turno = false;*/
+				turno = false;
 				break;
 			//CONFIRMA IGUALA
 			case 7:
@@ -81,7 +81,7 @@ void RecivedFunction(sf::TcpSocket* socket,size_t* recived, vector<string>* aMen
 				//cout << to_string(cantidad )<< endl;
 				/*game.listPlayers[0].efectivo -= cantidad;
 				game.efectivoMesa += cantidad;
-				turno = false;*/
+				turno = false;
 				break;
 			//CONFIRMA DESCARTE
 			case 8:
@@ -90,7 +90,26 @@ void RecivedFunction(sf::TcpSocket* socket,size_t* recived, vector<string>* aMen
 			default:
 				break;
 			}
-
+		}*/
+		int code;
+		string text;
+		sf::Packet pck;
+		sf::TcpSocket::Status statusSocket;
+		statusSocket=socket->receive(pck);
+		if (statusSocket == sf::TcpSocket::Status::Done)
+		{
+			pck >> code;
+			if (code == Code::MENSAJE)
+			{
+				pck >> text;
+				mu.lock();
+				aMensajes->push_back(text);
+				if (aMensajes->size() > 9)
+				{
+					aMensajes->erase(aMensajes->begin(), aMensajes->begin() + 1);
+				}
+				mu.unlock();
+			}
 		}
 	}
 	
@@ -98,6 +117,9 @@ void RecivedFunction(sf::TcpSocket* socket,size_t* recived, vector<string>* aMen
 
 int main()
 {
+	string playerName;
+	cout << "INTRODUCE NOMBRE USUARIO: ";
+	cin >> playerName;
 	//ESTABLECER CONNECION
 	sf::TcpSocket socket;
 	sf::TcpSocket::Status socketStatus;
@@ -167,8 +189,13 @@ int main()
 				{
 					// SEND
 					// Pasamos el mensaje a std::string para hacerlo mas facil en el momento de enviarlo.
-					msn = std::to_string(0)+mensaje;
-					socketStatus =socket.send(msn.c_str(), msn.size() + 1);
+					sf::Packet send;
+					string s = mensaje;
+					s.erase(s.begin()+1);
+					s = playerName + ": " + s;
+					send << Code::MENSAJE << s;
+					socketStatus = socket.send(send);
+
 					if (socketStatus == sf::TcpSocket::Status::Disconnected)
 					{
 						msn = "Server Disconnected";
@@ -189,7 +216,9 @@ int main()
 					//DESCARTAR MANO
 					if (mousePosition.x > 760 && mousePosition.x < 880 && mousePosition.y > 680 && mousePosition.y < 715)
 					{
-						msn = std::to_string(3);
+						//TO DO
+
+						/*msn = std::to_string(3);
 						cout << "DESCARTA" << endl;
 						socketStatus = socket.send(msn.c_str(), msn.size() + 1);
 						turno = false;
@@ -201,12 +230,14 @@ int main()
 							{
 								aMensajes.erase(aMensajes.begin(), aMensajes.begin() + 1);
 							}
-						}
+						}*/
 					}
 					//IGUALAR APUESTA
 					else if (mousePosition.x > 760 && mousePosition.x < 880 && mousePosition.y > 640 && mousePosition.y < 675)
 					{
-						msn = std::to_string(2);
+						//TO DO
+
+						/*msn = std::to_string(2);
 						cout << "IGUALA APUESTA" << endl;
 						socketStatus = socket.send(msn.c_str(), msn.size() + 1);
 						
@@ -223,12 +254,14 @@ int main()
 							{
 								aMensajes.erase(aMensajes.begin(), aMensajes.begin() + 1);
 							}
-						}
+						}*/
 					}
 					//SUBIR APUESTA
 					else if (mousePosition.x > 760 && mousePosition.x < 880 && mousePosition.y > 590 && mousePosition.y < 635)
 					{
-						msn = std::to_string(1);
+						//TO DO
+
+						/*msn = std::to_string(1);
 						cout << "SUBE APUESTA" << endl;
 						socketStatus = socket.send(msn.c_str(), msn.size() + 1);
 
@@ -246,7 +279,7 @@ int main()
 							{
 								aMensajes.erase(aMensajes.begin(), aMensajes.begin() + 1);
 							}
-						}
+						}*/
 					}
 				}
 				break;
