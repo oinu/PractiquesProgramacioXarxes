@@ -17,7 +17,7 @@ struct Player
 enum Code
 {
 	XMOVE, YMOVE, HELLO, WELLCOME, XPLAYER1, YPLAYER1, XPLAYER2, YPLAYER2, XPLAYER3, YPLAYER3, XPLAYER4, YPLAYER4,
-	ASK, PLAYERSNAME, STARTTIME, ENDTIME, ENDGAME
+	ASK, PLAYERSNAME, STARTTIME, ENDTIME, ENDGAME, AFK, DISCONNECTED
 };
 
 
@@ -41,21 +41,13 @@ bool endGame=false;
 
 void DibujaSFML()
 {
-
-	sf::RenderWindow window(sf::VideoMode(800, 600), "Party - Quiz Game");
-	sf::Font font;
-	if (!font.loadFromFile("Roboto-Bold.ttf"))
-	{
-		std::cout << "Can't load the font file" << std::endl;
-	}
-
 	sf::Packet pck;
 	std::cout << "Username:	";
 	std::string name;
 	std::cin >> name;
 	pck << Code::HELLO << name;
 	sock.send(pck, IP_SERVER, PORT_SERVER);
-	bool respostaServidor=false;
+	bool respostaServidor = false;
 	while (!respostaServidor)
 	{
 		sf::Socket::Status status = sock.receive(pck, ipRem, portRem);
@@ -92,6 +84,13 @@ void DibujaSFML()
 				}
 			}
 		}
+	}
+
+	sf::RenderWindow window(sf::VideoMode(800, 600), "Party - Quiz Game");
+	sf::Font font;
+	if (!font.loadFromFile("Roboto-Bold.ttf"))
+	{
+		std::cout << "Can't load the font file" << std::endl;
 	}
 
 	while (window.isOpen())
@@ -147,6 +146,18 @@ void DibujaSFML()
 		{
 			currentTime--;
 			timer.restart();
+			sf::Packet send;
+			send << HELLO;
+			int r = rand() % 100 + 1;
+			if (r > 20)	//20% de perder el paquete
+			{
+				sock.send(send, IP_SERVER, PORT_SERVER);
+			}
+			else
+			{
+				std::cout << "LOST PACKET" << std::endl;
+			}
+
 		}
 
 		sf::Socket::Status status = sock.receive(pck, ipRem, portRem);
@@ -220,8 +231,39 @@ void DibujaSFML()
 				c = a;
 				d = a;
 				break;
+
+			case AFK:
+				pck >> pos;
+				for (int i = 0; i < pos; i++)
+				{
+					pck >> id;
+					switch (id)
+					{
+					case 0:
+						p1.name = "-------";
+						p1.points = 0;
+						break;
+					case 1:
+						p2.name = "-------";
+						p2.points = 0;
+						break;
+					case 2:
+						p3.name = "-------";
+						p3.points = 0;
+						break;
+					case 3:
+						p4.name = "-------";
+						p4.points = 0;
+						break;
+					default:
+						break;
+					}
+				}
+				break;
+
 			default:
 				break;
+
 			}
 		}
 
@@ -395,11 +437,19 @@ void StartScene()
 	dOption.setPosition(sf::Vector2f(400, 350));
 }
 
+void CloseGame()
+{
+	sf::Packet pck;
+	pck << DISCONNECTED;
+	sock.send(pck, IP_SERVER, PORT_SERVER);
+}
+
 int main()
 {
 	StartPlayers();
 	StartScene();
 	sock.setBlocking(false);
 	DibujaSFML();
+	CloseGame();
 	return 0;
 }

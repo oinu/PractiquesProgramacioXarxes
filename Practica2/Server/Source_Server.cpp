@@ -11,6 +11,8 @@ struct Player
 	int x;
 	int y;
 	int points;
+	int timeSendPosition = 0;
+	int timeHello = 0;
 };
 
 struct Game
@@ -26,7 +28,7 @@ struct Game
 enum Code
 {
 	XMOVE, YMOVE, HELLO, WELLCOME, XPLAYER1, YPLAYER1, XPLAYER2, YPLAYER2, XPLAYER3, YPLAYER3, XPLAYER4, YPLAYER4,
-	ASK, PLAYERSNAME,STARTTIME,ENDTIME, ENDGAME
+	ASK, PLAYERSNAME, STARTTIME, ENDTIME, ENDGAME, AFK, DISCONNECTED
 };
 
 sf::UdpSocket sock;
@@ -37,7 +39,7 @@ Game g[5];
 sf::Packet pck;
 int index = -1;
 int preguntaActual = 0;
-bool state = true;
+bool state = true, start=false;
 int currentTime =-1;
 
 
@@ -198,6 +200,65 @@ void ActualizarTime()
 				if(preguntaActual<4)NewGame();
 				else EndGame();
 			}
+			/*//Incrementamos el tiempo de no movimiento
+			std::vector<int>indexAfkPlayers;
+			for (int i = 0; i<players.size(); i++)
+			{
+				players[i].timeSendPosition++;
+				if (players[i].timeSendPosition >= 10)
+				{
+					indexAfkPlayers.push_back(i);
+				}
+			}
+
+			//Los jugadores que estan afk hace 10 segundos
+			pck.clear();
+			pck << AFK << (int)indexAfkPlayers.size();
+			for (int i : indexAfkPlayers)
+			{
+				pck << i;
+				sf::Packet dis;
+				dis << DISCONNECTED;
+				sock.send(dis, players[i].ip, players[i].port);
+				players[i].points = -1;
+			}
+
+			//Se informa a los jugadores activos
+			for (int i =0; i < players.size();i++)
+			{
+				if (players[i].points!= - 1) sock.send(pck, players[i].ip, players[i].port);
+			}
+			pck.clear();
+			indexAfkPlayers.clear();
+
+			//Tiempo sin recivir un Hello
+			indexAfkPlayers.clear();
+			for (int i = 0; i<players.size(); i++)
+			{
+				players[i].timeHello++;
+				if (players[i].timeHello >= 3)
+				{
+					indexAfkPlayers.push_back(i);
+				}
+			}
+			//Los jugadores que estan sin enviar
+			pck.clear();
+			pck << AFK << (int)indexAfkPlayers.size();
+			for (int i : indexAfkPlayers)
+			{
+				pck << i;
+				sf::Packet dis;
+				dis << DISCONNECTED;
+				sock.send(dis, players[i].ip, players[i].port);
+				players[i].points = -1;
+			}
+
+			//Se informa a los jugadores activos
+			for (int i = 0; i < players.size(); i++)
+			{
+				if (players[i].points != -1) sock.send(pck, players[i].ip, players[i].port);
+			}
+			pck.clear();*/
 			timer.restart();
 		}
 	}
@@ -255,8 +316,8 @@ int main()
 							//Miramos todos players 
 							for (int i = 0; i < players.size(); i++)
 							{
-								//Evitamos mandar al mismo jugador
-								if (index != i)
+								//Evitamos mandar al mismo jugador y los desconnectados
+								if (index != i && players[index].points!=-1)
 								{
 									//Si el jugado es....
 									switch (index)
@@ -311,7 +372,7 @@ int main()
 							for (int i = 0; i < players.size(); i++)
 							{
 								//Evitamos mandar al mismo jugador
-								if (index != i)
+								if (index != i && players[index].points != -1)
 								{
 									//Si el jugado es....
 									switch (index)
@@ -353,13 +414,13 @@ int main()
 						break;
 
 					case Code::HELLO:
-						if (index == -1 && players.size()<4)
+						if (index == -1 && players.size()<4 && !start)
 						{
 							//Guardamos la ip, el puerto y le indicamos la puntuacion
 							player.ip = p.ip;
 							player.port = p.port;
 							player.points = 0;
-							
+
 							//Situamos los jugadores segun van llegando
 							if (players.size() == 0)
 							{
@@ -394,6 +455,7 @@ int main()
 							if (players.size() == 4)
 							{
 								NewGame();
+								start = true;
 								for (int i = 0; i < players.size(); i++)
 								{
 									sendPck.clear();
@@ -402,8 +464,25 @@ int main()
 								}
 							}
 						}
+						if (index != -1)
+						{
+							players[index].timeHello = 0;
+						}
 						break;
 
+					case Code::DISCONNECTED:
+						players[index].name = "";
+						players[index].points = -1;
+						pck.clear();
+						pck << AFK << 1 << index;
+						for (int i = 0; i < players.size(); i++)
+						{
+							if (index != i && players[i].points!=-1)
+							{
+								sock.send(pck, players[i].ip, players[i].port);
+							}
+						}
+						break;
 					default:
 						break;
 					}
