@@ -27,8 +27,8 @@ struct Game
 
 enum Code
 {
-	XMOVE, YMOVE, HELLO, WELLCOME, XPLAYER1, YPLAYER1, XPLAYER2, YPLAYER2, XPLAYER3, YPLAYER3, XPLAYER4, YPLAYER4,
-	ASK, PLAYERSNAME, STARTTIME, ENDTIME, ENDGAME, AFK, DISCONNECTED
+	HELLO, WELLCOME, ASK, PLAYERSNAME, STARTTIME, ENDTIME, ENDGAME, AFK,
+	DISCONNECTED, ACOMOVE, ACK_ACOMOVE,PLAYER1,PLAYER2,PLAYER3,PLAYER4
 };
 
 sf::UdpSocket sock;
@@ -53,28 +53,31 @@ void ActualizarMarcadores()
 		int y = players[i].y + 15;
 		
 
-		//Opcion A
-		if (x >= 0 && x <= 400 && y >= 200 && y <= 350 && g[preguntaActual].respuesta == 1)
+		if (players[i].points != -1)
 		{
-			players[i].points += 10;
-		}
+			//Opcion A
+			if (x >= 0 && x <= 400 && y >= 200 && y <= 350 && g[preguntaActual].respuesta == 1)
+			{
+				players[i].points += 10;
+			}
 
-		//Opcion B
-		else if (x >= 400 && x <= 800 && y >= 200 && y <= 350 && g[preguntaActual].respuesta == 2)
-		{
-			players[i].points += 10;
-		}
+			//Opcion B
+			else if (x >= 400 && x <= 800 && y >= 200 && y <= 350 && g[preguntaActual].respuesta == 2)
+			{
+				players[i].points += 10;
+			}
 
-		//Opcion C
-		if (x >= 0 && x <= 400 && y >= 350 && y <= 500 && g[preguntaActual].respuesta == 3)
-		{
-			players[i].points += 10;
-		}
+			//Opcion C
+			if (x >= 0 && x <= 400 && y >= 350 && y <= 500 && g[preguntaActual].respuesta == 3)
+			{
+				players[i].points += 10;
+			}
 
-		//Opcion D
-		else if (x >= 400 && x <= 800 && y >= 350 && y <= 500 && g[preguntaActual].respuesta == 4)
-		{
-			players[i].points += 10;
+			//Opcion D
+			else if (x >= 400 && x <= 800 && y >= 350 && y <= 500 && g[preguntaActual].respuesta == 4)
+			{
+				players[i].points += 10;
+			}
 		}
 	}
 
@@ -83,7 +86,7 @@ void ActualizarMarcadores()
 	pck << ENDTIME << players[0].points << players[1].points << players[2].points << players[3].points;
 	for (int i = 0; i < players.size(); i++)
 	{
-		sock.send(pck, players[i].ip, players[i].port);
+		if(players[i].points!=-1)sock.send(pck, players[i].ip, players[i].port);
 	}
 	pck.clear();
 
@@ -141,8 +144,8 @@ void NewGame()
 	pck.clear();
 
 	//Informar que empieza la partida y el tiempo que tienen.
-	currentTime = 30;
-	pck << STARTTIME << 30;
+	currentTime = 10;
+	pck << STARTTIME << currentTime;
 	for (int i = 0; i < players.size(); i++)
 	{
 		sock.send(pck, players[i].ip, players[i].port);
@@ -169,7 +172,7 @@ void EndGame()
 		}
 	}
 
-	std::string nombresGanadores;
+	std::string nombresGanadores="";
 	for (int i = 0; i < ganadores.size(); i++)
 	{
 		nombresGanadores += players[i].name+ "	";
@@ -189,7 +192,7 @@ void ActualizarTime()
 	sf::Clock timer;
 	while (state)
 	{
-		if (timer.getElapsedTime().asSeconds() >= 1)
+		if (timer.getElapsedTime().asSeconds() >= 1 && start)
 		{
 			//Se resta de los segundos restantes
 			currentTime--;
@@ -200,7 +203,7 @@ void ActualizarTime()
 				if(preguntaActual<4)NewGame();
 				else EndGame();
 			}
-			/*//Incrementamos el tiempo de no movimiento
+			//Incrementamos el tiempo de no movimiento
 			std::vector<int>indexAfkPlayers;
 			for (int i = 0; i<players.size(); i++)
 			{
@@ -221,6 +224,7 @@ void ActualizarTime()
 				dis << DISCONNECTED;
 				sock.send(dis, players[i].ip, players[i].port);
 				players[i].points = -1;
+				players[i].name = "";
 			}
 
 			//Se informa a los jugadores activos
@@ -231,7 +235,7 @@ void ActualizarTime()
 			pck.clear();
 			indexAfkPlayers.clear();
 
-			//Tiempo sin recivir un Hello
+			/*//Tiempo sin recivir un Hello
 			indexAfkPlayers.clear();
 			for (int i = 0; i<players.size(); i++)
 			{
@@ -287,12 +291,15 @@ int main()
 		{
 				status = sock.receive(pck, p.ip, p.port);
 				index = -1;
+				int vacios = 0;
 				//Buscamos que si ya es conocido
 				for (int i = 0; i < players.size(); i++)
 				{
 					if (players[i].ip == p.ip && players[i].port == p.port)
 						index = i;
+					if (players[i].points == -1)vacios++;
 				}
+				if (vacios == players.size())players.clear();
 
 				if (status == sf::Socket::Done)
 				{
@@ -302,119 +309,8 @@ int main()
 
 					switch (id)
 					{
-
-					case Code::XMOVE:
-						//Movimiento en X
-						pck >> pos;
-						if (pos >= 0 && pos + 30 <= 800)
-						{
-							players[index].x = pos;
-							sf::Packet pckSend;
-							pckSend << XMOVE << pos;
-							sock.send(pckSend, players[index].ip, players[index].port);
-
-							//Miramos todos players 
-							for (int i = 0; i < players.size(); i++)
-							{
-								//Evitamos mandar al mismo jugador y los desconnectados
-								if (index != i && players[index].points!=-1)
-								{
-									//Si el jugado es....
-									switch (index)
-									{
-									case 0:
-										pckSend.clear();
-										pckSend << XPLAYER1 << pos;
-										sock.send(pckSend, players[i].ip, players[i].port);
-										break;
-									case 1:
-										pckSend.clear();
-										pckSend << XPLAYER2 << pos;
-										sock.send(pckSend, players[i].ip, players[i].port);
-										break;
-									case 2:
-										pckSend.clear();
-										pckSend << XPLAYER3 << pos;
-										sock.send(pckSend, players[i].ip, players[i].port);
-										break;
-									case 3:
-										pckSend.clear();
-										pckSend << XPLAYER4 << pos;
-										sock.send(pckSend, players[i].ip, players[i].port);
-										break;
-									default:
-										break;
-									}
-								}
-							}
-						}
-
-						//Si la posicion es invalida
-						else
-						{
-							sf::Packet pckSend;
-							pckSend << -1;
-							sock.send(pckSend, players[index].ip, players[index].port);
-						}
-						break;
-
-					case Code::YMOVE:
-						//Movimiento en Y
-						pck >> pos;
-						if (pos >= 200 && pos + 30 <= 500)
-						{
-							players[index].y = pos;
-							sf::Packet pckSend;
-							pckSend << YMOVE << players[index].y;
-							sock.send(pckSend, players[index].ip, players[index].port);
-
-							//Miramos todos players 
-							for (int i = 0; i < players.size(); i++)
-							{
-								//Evitamos mandar al mismo jugador
-								if (index != i && players[index].points != -1)
-								{
-									//Si el jugado es....
-									switch (index)
-									{
-									case 0:
-										pckSend.clear();
-										pckSend << YPLAYER1 << pos;
-										sock.send(pckSend, players[i].ip, players[i].port);
-										break;
-									case 1:
-										pckSend.clear();
-										pckSend << YPLAYER2 << pos;
-										sock.send(pckSend, players[i].ip, players[i].port);
-										break;
-									case 2:
-										pckSend.clear();
-										pckSend << YPLAYER3 << pos;
-										sock.send(pckSend, players[i].ip, players[i].port);
-										break;
-									case 3:
-										pckSend.clear();
-										pckSend << YPLAYER4 << pos;
-										sock.send(pckSend, players[i].ip, players[i].port);
-										break;
-									default:
-										break;
-									}
-								}
-							}
-						}
-
-						//Si la posicion es invalida
-						else
-						{
-							sf::Packet pckSend;
-							pckSend << -1;
-							sock.send(pckSend, players[index].ip, players[index].port);
-						}
-						break;
-
 					case Code::HELLO:
-						if (index == -1 && players.size()<4 && !start)
+						if (index == -1 && players.size() < 4 && !start)
 						{
 							//Guardamos la ip, el puerto y le indicamos la puntuacion
 							player.ip = p.ip;
@@ -429,18 +325,18 @@ int main()
 							}
 							else if (players.size() == 1)
 							{
-								player.x = 430;
+								player.x = 400;
 								player.y = 320;
 							}
 							else if (players.size() == 2)
 							{
 								player.x = 370;
-								player.y = 380;
+								player.y = 350;
 							}
 							else if (players.size() == 3)
 							{
-								player.x = 430;
-								player.y = 380;
+								player.x = 400;
+								player.y = 350;
 							}
 
 							//Guardamos el nombre recibido
@@ -464,8 +360,11 @@ int main()
 								}
 							}
 						}
-						if (index != -1)
+						if (index != -1 && players[index].points != -1)
 						{
+							pck.clear();
+							pck << WELLCOME;
+							sock.send(pck, players[index].ip, players[index].port);
 							players[index].timeHello = 0;
 						}
 						break;
@@ -477,9 +376,74 @@ int main()
 						pck << AFK << 1 << index;
 						for (int i = 0; i < players.size(); i++)
 						{
-							if (index != i && players[i].points!=-1)
+							if (index != i && players[i].points != -1)
 							{
 								sock.send(pck, players[i].ip, players[i].port);
+							}
+						}
+						break;
+
+					case Code::ACOMOVE:
+						if(players[index].points != -1)
+						{
+							//id es la x y pos es la y
+							pck >> id >> pos;
+							id += players[index].x;
+							pos += players[index].y;
+							players[index].timeSendPosition = 0;
+
+							if (id >= 0 && id + 30 <= 800 && pos >= 200 && pos + 30 <= 500)
+							{
+
+								players[index].x = id;
+								players[index].y = pos;
+
+								pck.clear();
+								pck << ACK_ACOMOVE << id << pos;
+								sock.send(pck, players[index].ip, players[index].port);
+								pck.clear();
+
+								//Miramos todos players 
+								for (int i = 0; i < players.size(); i++)
+								{
+									//Evitamos mandar al mismo jugador
+									if (index != i && players[index].points != -1)
+									{
+										//Si el jugado es....
+										switch (index)
+										{
+										case 0:
+											pck.clear();
+											pck << PLAYER1 << id << pos;
+											sock.send(pck, players[i].ip, players[i].port);
+											break;
+										case 1:
+											pck.clear();
+											pck << PLAYER2 << id << pos;
+											sock.send(pck, players[i].ip, players[i].port);
+											break;
+										case 2:
+											pck.clear();
+											pck << PLAYER3 << id << pos;
+											sock.send(pck, players[i].ip, players[i].port);
+											break;
+										case 3:
+											pck.clear();
+											pck << PLAYER4 << id << pos;
+											sock.send(pck, players[i].ip, players[i].port);
+											break;
+										default:
+											break;
+										}
+									}
+								}
+							}
+							else
+							{
+								pck.clear();
+								pck << -1;
+								sock.send(pck, players[index].ip, players[index].port);
+								pck.clear();
 							}
 						}
 						break;

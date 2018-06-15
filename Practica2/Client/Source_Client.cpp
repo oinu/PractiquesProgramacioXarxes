@@ -14,10 +14,11 @@ struct Player
 	int points;
 	sf::RectangleShape rect,rectPoints;
 };
+
 enum Code
 {
-	XMOVE, YMOVE, HELLO, WELLCOME, XPLAYER1, YPLAYER1, XPLAYER2, YPLAYER2, XPLAYER3, YPLAYER3, XPLAYER4, YPLAYER4,
-	ASK, PLAYERSNAME, STARTTIME, ENDTIME, ENDGAME, AFK, DISCONNECTED
+	HELLO, WELLCOME, ASK, PLAYERSNAME, STARTTIME, ENDTIME, ENDGAME, AFK,
+	DISCONNECTED, ACOMOVE, ACK_ACOMOVE, PLAYER1, PLAYER2, PLAYER3, PLAYER4
 };
 
 
@@ -36,8 +37,29 @@ sf::IpAddress ipRem;
 unsigned short portRem;
 
 int currentTime;
-sf::Clock timer;
-bool endGame=false;
+sf::Clock timer,helloTimer,hello,movimientoTimer;
+bool endGame = false, resposta = false;
+
+void SendHello()
+{
+	hello.restart();
+	sf::Packet send;
+	send << HELLO;
+	int r = rand() % 100 + 1;
+	if (r > 20)	//20% de perder el paquete
+	{
+		if (resposta)
+		{
+			resposta = false;
+			helloTimer.restart();
+		}
+		else sock.send(send, IP_SERVER, PORT_SERVER);
+	}
+	else
+	{
+		std::cout << "LOST PACKET" << std::endl;
+	}
+}
 
 void DibujaSFML()
 {
@@ -93,6 +115,7 @@ void DibujaSFML()
 		std::cout << "Can't load the font file" << std::endl;
 	}
 
+	std::vector<int>acumulacionX,acumulacionY;
 	while (window.isOpen())
 	{
 		sf::Event event;
@@ -107,32 +130,24 @@ void DibujaSFML()
 			case sf::Event::KeyPressed:
 				if (event.key.code == sf::Keyboard::Left)
 				{
-					sf::Packet pckLeft;
 					localPlayer->x -= speed;
-					pckLeft <<0<< localPlayer->x;
-					sock.send(pckLeft, IP_SERVER, PORT_SERVER);
+					acumulacionX.push_back(-speed);
 
 				}
 				else if (event.key.code == sf::Keyboard::Right)
 				{
-					sf::Packet pckRight;
 					localPlayer->x+=speed;
-					pckRight << 0 << localPlayer->x;
-					sock.send(pckRight, IP_SERVER, PORT_SERVER);
+					acumulacionX.push_back(speed);
 				}
 				else if (event.key.code == sf::Keyboard::Up)
 				{
-					sf::Packet pckUp;
 					localPlayer->y -= speed;
-					pckUp << 1 << localPlayer->y;
-					sock.send(pckUp, IP_SERVER, PORT_SERVER);
+					acumulacionY.push_back(-speed);;
 				}
 				else if (event.key.code == sf::Keyboard::Down)
 				{
-					sf::Packet pckDown;
 					localPlayer->y += speed;
-					pckDown << 1 << localPlayer->y;
-					sock.send(pckDown, IP_SERVER, PORT_SERVER);
+					acumulacionY.push_back(speed);
 				}
 				break;
 
@@ -142,22 +157,38 @@ void DibujaSFML()
 			}
 		}
 
+		//Mandar Acumulacion de movimentos
+		if(acumulacionX.size()+acumulacionY.size()>=5)
+		{
+			sf::Packet pckLeft;
+			int x=0, y=0;
+			for (int a : acumulacionX)
+			{
+				x += a;
+			}
+
+			for (int a : acumulacionY)
+			{
+				y += a;
+			}
+			pckLeft << ACOMOVE << x<< y;
+			sock.send(pckLeft, IP_SERVER, PORT_SERVER);
+			acumulacionX.clear();
+			acumulacionY.clear();
+			movimientoTimer.restart();
+		}
+
+		//Actualizar tiempo
 		if (timer.getElapsedTime().asSeconds() >= 1)
 		{
 			currentTime--;
 			timer.restart();
-			sf::Packet send;
-			send << HELLO;
-			int r = rand() % 100 + 1;
-			if (r > 20)	//20% de perder el paquete
-			{
-				sock.send(send, IP_SERVER, PORT_SERVER);
-			}
-			else
-			{
-				std::cout << "LOST PACKET" << std::endl;
-			}
+		}
 
+		//Mandar hello
+		if (helloTimer.getElapsedTime().asMilliseconds() >= 500)
+		{
+			if(hello.getElapsedTime().asMilliseconds()>=450)SendHello();
 		}
 
 		sf::Socket::Status status = sock.receive(pck, ipRem, portRem);
@@ -170,46 +201,6 @@ void DibujaSFML()
 			case -1:
 				localPlayer->x = localPlayer->previusX;
 				localPlayer->y = localPlayer->previusY;
-				break;
-			case XMOVE:
-				pck >> pos;
-				localPlayer->previusX = pos;
-				break;
-			case YMOVE:
-				pck >> pos;
-				localPlayer->previusY = pos;
-				break;
-			case XPLAYER1:
-				pck >> pos;
-				p1.x = pos;
-				break;
-			case YPLAYER1:
-				pck >> pos;
-				p1.y = pos;
-				break;
-			case XPLAYER2:
-				pck >> pos;
-				p2.x = pos;
-				break;
-			case YPLAYER2:
-				pck >> pos;
-				p2.y = pos;
-				break;
-			case XPLAYER3:
-				pck >> pos;
-				p3.x = pos;
-				break;
-			case YPLAYER3:
-				pck >> pos;
-				p3.y = pos;
-				break;
-			case XPLAYER4:
-				pck >> pos;
-				p4.x = pos;
-				break;
-			case YPLAYER4:
-				pck >> pos;
-				p4.y = pos;
 				break;
 			case ASK:
 				pck >> pregunta>>a>>b>>c>>d;
@@ -261,6 +252,32 @@ void DibujaSFML()
 				}
 				break;
 
+			case WELLCOME:
+				resposta = true;
+				break;
+			case ACK_ACOMOVE:
+				pck>>localPlayer->previusX;
+				pck>>localPlayer->previusY;
+
+			case PLAYER1:
+				pck >> p1.x;
+				pck >> p1.y;
+				break;
+			case PLAYER2:
+				pck >> p2.x;
+				pck >> p2.y;
+				break;
+			case PLAYER3:
+				pck >> p3.x;
+				pck >> p3.y;
+				break;
+			case PLAYER4:
+				pck >> p4.x;
+				pck >> p4.y;
+				break;
+			case DISCONNECTED:
+				window.close();
+				break;
 			default:
 				break;
 
