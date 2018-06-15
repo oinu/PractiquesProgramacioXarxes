@@ -362,8 +362,9 @@ int main()
 						}
 						if (index != -1 && players[index].points != -1)
 						{
+							pck >> pos;
 							pck.clear();
-							pck << WELLCOME;
+							pck << WELLCOME<<pos;
 							sock.send(pck, players[index].ip, players[index].port);
 							players[index].timeHello = 0;
 						}
