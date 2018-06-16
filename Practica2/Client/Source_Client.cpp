@@ -8,11 +8,12 @@
 struct Player
 {
 	std::string name;
-	int x, previusX;
-	int y, previusY;
+	int x, previusX,futurX=0,nextX=0;
+	int y, previusY,futurY=0,nextY=0;
 	int size;
 	int points;
 	sf::RectangleShape rect,rectPoints;
+	bool localPlayer;
 };
 
 enum Code
@@ -103,6 +104,8 @@ void DibujaSFML()
 				default:
 					break;
 				}
+
+				localPlayer->localPlayer = true;
 			}
 		}
 	}
@@ -158,6 +161,98 @@ void DibujaSFML()
 		//Si estamos en partida
 		if (!endGame)
 		{
+			if (!p1.localPlayer)
+			{
+				if (p1.futurX != p1.nextX)
+				{
+					p1.x = p1.nextX;
+					if (p1.futurX - p1.nextX > 0)
+					{
+						p1.nextX += speed;
+					}
+					else
+						p1.nextX -= speed;
+				}
+				if (p1.futurY != p1.nextY)
+				{
+					p1.y = p1.nextY;
+					if (p1.futurY - p1.nextY > 0)
+					{
+						p1.nextY += speed;
+					}
+					else
+						p1.nextY -= speed;
+				}
+			}
+			if (!p2.localPlayer)
+			{
+				if (p2.futurX != p2.nextX)
+				{
+					p2.x = p2.nextX;
+					if (p2.futurX - p2.nextX > 0)
+					{
+						p2.nextX += speed;
+					}
+					else
+						p2.nextX -= speed;
+				}
+				if (p2.futurY != p2.nextY)
+				{
+					p2.y = p2.nextY;
+					if (p2.futurY - p2.nextY > 0)
+					{
+						p2.nextY += speed;
+					}
+					else
+						p2.nextY -= speed;
+				}
+			}
+			if (!p3.localPlayer)
+			{
+				if (p3.futurX != p3.nextX)
+				{
+					p3.x = p3.nextX;
+					if (p3.futurX - p3.nextX > 0)
+					{
+						p3.nextX += speed;
+					}
+					else
+						p3.nextX -= speed;
+				}
+				if (p3.futurY != p3.nextY)
+				{
+					p3.y = p3.nextY;
+					if (p3.futurY - p3.nextY > 0)
+					{
+						p3.nextY += speed;
+					}
+					else
+						p3.nextY -= speed;
+				}
+			}
+			if (!p4.localPlayer)
+			{
+				if (p4.futurX != p4.nextX)
+				{
+					p4.x = p4.nextX;
+					if (p4.futurX - p4.nextX > 0)
+					{
+						p4.nextX += speed;
+					}
+					else
+						p4.nextX -= speed;
+				}
+				if (p4.futurY != p4.nextY)
+				{
+					p4.y = p4.nextY;
+					if (p4.futurY - p4.nextY > 0)
+					{
+						p4.nextY += speed;
+					}
+					else
+						p4.nextY -= speed;
+				}
+			}
 			//Mandar Acumulacion de movimentos
 			if (acumulacionX.size() + acumulacionY.size() >= 5)
 			{
@@ -299,20 +394,72 @@ void DibujaSFML()
 				pck>>localPlayer->previusY;
 
 			case PLAYER1:
-				pck >> p1.x;
-				pck >> p1.y;
+				pck >> p1.futurX;
+				pck >> p1.futurY;
+				if (p1.futurX - p1.nextX > 0)
+				{
+					p1.nextX = p1.x+ speed;
+				}
+				else
+					p1.nextX = p1.x - speed;
+
+				if (p1.futurY - p1.nextY > 0)
+				{
+					p1.nextY = p1.y + speed;
+				}
+				else
+					p1.nextY = p1.y - speed;
 				break;
 			case PLAYER2:
-				pck >> p2.x;
-				pck >> p2.y;
+				pck >> p2.futurX;
+				pck >> p2.futurY;
+				if (p2.futurX - p2.nextX > 0)
+				{
+					p2.nextX = p2.x + speed;
+				}
+				else
+					p2.nextX = p2.x - speed;
+
+				if (p2.futurY - p2.nextY > 0)
+				{
+					p2.nextY = p2.y + speed;
+				}
+				else
+					p2.nextY = p2.y - speed;
 				break;
 			case PLAYER3:
-				pck >> p3.x;
-				pck >> p3.y;
+				pck >> p3.futurX;
+				pck >> p3.futurY;
+				if (p3.futurX - p3.nextX > 0)
+				{
+					p3.nextX = p3.x + speed;
+				}
+				else
+					p3.nextX = p3.x - speed;
+
+				if (p3.futurY - p3.nextY > 0)
+				{
+					p3.nextY = p3.y + speed;
+				}
+				else
+					p3.nextY = p3.y - speed;
 				break;
 			case PLAYER4:
-				pck >> p4.x;
-				pck >> p4.y;
+				pck >> p4.futurX;
+				pck >> p4.futurY;
+				if (p4.futurX - p4.nextX > 0)
+				{
+					p4.nextX = p4.x + speed;
+				}
+				else
+					p4.nextX = p4.x - speed;
+
+				if (p4.futurY - p4.nextY > 0)
+				{
+					p4.nextY = p4.y + speed;
+				}
+				else
+					p4.nextY = p4.y - speed;
 				break;
 			case DISCONNECTED:
 				window.close();
