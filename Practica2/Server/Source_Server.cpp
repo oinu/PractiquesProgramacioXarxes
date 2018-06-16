@@ -13,6 +13,7 @@ struct Player
 	int points;
 	int timeSendPosition = 0;
 	int timeHello = 0;
+	std::vector<int>acumulacionHello;
 };
 
 struct Game
@@ -139,7 +140,7 @@ void NewGame()
 	pck << ASK << g[preguntaActual].pregunta << g[preguntaActual].a << g[preguntaActual].b << g[preguntaActual].c << g[preguntaActual].d;
 	for (int i = 0; i < players.size(); i++)
 	{
-		sock.send(pck, players[i].ip, players[i].port);
+		if (players[i].points != -1) sock.send(pck, players[i].ip, players[i].port);
 	}
 	pck.clear();
 
@@ -148,7 +149,7 @@ void NewGame()
 	pck << STARTTIME << currentTime;
 	for (int i = 0; i < players.size(); i++)
 	{
-		sock.send(pck, players[i].ip, players[i].port);
+		if (players[i].points != -1) sock.send(pck, players[i].ip, players[i].port);
 	}
 	pck.clear();
 }
@@ -166,7 +167,7 @@ void EndGame()
 			ganadores.push_back(i);
 			points = players[i].points;
 		}
-		else if (players[i].points == points)
+		else if (players[i].points == points && players[i].points != -1)
 		{
 			ganadores.push_back(i);
 		}
@@ -182,7 +183,7 @@ void EndGame()
 	pck << ENDGAME << nombresGanadores + "	WIN!!!";
 	for (int i = 0; i < players.size(); i++)
 	{
-		sock.send(pck, players[i].ip, players[i].port);
+		if (players[i].points != -1)sock.send(pck, players[i].ip, players[i].port);
 	}
 	pck.clear();
 }
@@ -207,10 +208,13 @@ void ActualizarTime()
 			std::vector<int>indexAfkPlayers;
 			for (int i = 0; i<players.size(); i++)
 			{
-				players[i].timeSendPosition++;
-				if (players[i].timeSendPosition >= 10)
+				if (players[i].points != -1)
 				{
-					indexAfkPlayers.push_back(i);
+					players[i].timeSendPosition++;
+					if (players[i].timeSendPosition >= 20)
+					{
+						indexAfkPlayers.push_back(i);
+					}
 				}
 			}
 
@@ -224,7 +228,6 @@ void ActualizarTime()
 				dis << DISCONNECTED;
 				sock.send(dis, players[i].ip, players[i].port);
 				players[i].points = -1;
-				players[i].name = "";
 			}
 
 			//Se informa a los jugadores activos
@@ -235,34 +238,6 @@ void ActualizarTime()
 			pck.clear();
 			indexAfkPlayers.clear();
 
-			/*//Tiempo sin recivir un Hello
-			indexAfkPlayers.clear();
-			for (int i = 0; i<players.size(); i++)
-			{
-				players[i].timeHello++;
-				if (players[i].timeHello >= 3)
-				{
-					indexAfkPlayers.push_back(i);
-				}
-			}
-			//Los jugadores que estan sin enviar
-			pck.clear();
-			pck << AFK << (int)indexAfkPlayers.size();
-			for (int i : indexAfkPlayers)
-			{
-				pck << i;
-				sf::Packet dis;
-				dis << DISCONNECTED;
-				sock.send(dis, players[i].ip, players[i].port);
-				players[i].points = -1;
-			}
-
-			//Se informa a los jugadores activos
-			for (int i = 0; i < players.size(); i++)
-			{
-				if (players[i].points != -1) sock.send(pck, players[i].ip, players[i].port);
-			}
-			pck.clear();*/
 			timer.restart();
 		}
 	}
@@ -303,10 +278,10 @@ int main()
 
 				if (status == sf::Socket::Done)
 				{
-					int id, pos;
+					int id, pos, aux;
 					pck >> id;
 					Player player;
-
+					//std::cout << id << std::endl;
 					switch (id)
 					{
 					case Code::HELLO:
@@ -351,27 +326,50 @@ int main()
 							if (players.size() == 4)
 							{
 								NewGame();
-								start = true;
 								for (int i = 0; i < players.size(); i++)
 								{
 									sendPck.clear();
 									sendPck << PLAYERSNAME << players[0].name << players[1].name << players[2].name << players[3].name;
 									sock.send(sendPck, players[i].ip, players[i].port);
 								}
+								start = true;
 							}
 						}
-						if (index != -1 && players[index].points != -1)
+						else if (players[index].points != -1)
 						{
 							pck >> pos;
-							pck.clear();
-							pck << WELLCOME<<pos;
-							sock.send(pck, players[index].ip, players[index].port);
+							//comprovamos que conocemos todos los hello pendientes
+							for (int i = 0; i < pos; i++)
+							{
+								pck >> id;
+								for (int j = 0; j < players[index].acumulacionHello.size(); j++)
+								{
+									//Si es un hello perdido
+									if (players[index].acumulacionHello[j] == id)aux = j;
+								}
+								//Lo añadimos
+								players[index].acumulacionHello.push_back(aux);
+							}
+							
 							players[index].timeHello = 0;
+
+							//Si se acumulan mas de 10 paquetes se informa al cliente
+							if (players[index].acumulacionHello.size() > 10)
+							{
+								pck.clear();
+								pck << WELLCOME << players[index].acumulacionHello.size();
+								for (int i : players[index].acumulacionHello)
+								{
+									pck << i;
+								}
+								sock.send(pck, players[index].ip, players[index].port);
+								pck.clear();
+								players[index].acumulacionHello.clear();
+							}
 						}
 						break;
 
 					case Code::DISCONNECTED:
-						players[index].name = "";
 						players[index].points = -1;
 						pck.clear();
 						pck << AFK << 1 << index;
@@ -379,7 +377,7 @@ int main()
 						{
 							if (index != i && players[i].points != -1)
 							{
-								sock.send(pck, players[i].ip, players[i].port);
+								if(players[i].points!=-1)sock.send(pck, players[i].ip, players[i].port);
 							}
 						}
 						break;

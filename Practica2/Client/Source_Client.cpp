@@ -40,6 +40,7 @@ int currentTime;
 sf::Clock timer,helloTimer,hello,movimientoTimer;
 bool endGame = false, resposta = false;
 
+
 std::vector<int>acumulacionHello;
 
 void SendHello()
@@ -60,6 +61,7 @@ void SendHello()
 
 void DibujaSFML()
 {
+	srand(time(NULL));
 	sf::Packet pck;
 	std::cout << "Username:	";
 	std::string name;
@@ -153,63 +155,52 @@ void DibujaSFML()
 
 			}
 		}
-
-		//Mandar Acumulacion de movimentos
-		//Forzamos a enviar la ultima posicion antes de la nueva partida
-		//para que el servidor y los jugadores lo vean bien
-		if(acumulacionX.size()+acumulacionY.size()>=5 || currentTime <= 1)
+		//Si estamos en partida
+		if (!endGame)
 		{
-			sf::Packet pckLeft;
-			int x=0, y=0;
-			for (int a : acumulacionX)
+			//Mandar Acumulacion de movimentos
+			if (acumulacionX.size() + acumulacionY.size() >= 5)
 			{
-				x += a;
+				sf::Packet pckLeft;
+				int x = 0, y = 0;
+				for (int a : acumulacionX)
+				{
+					x += a;
+				}
+
+				for (int a : acumulacionY)
+				{
+					y += a;
+				}
+				pckLeft << ACOMOVE << x << y;
+				sock.send(pckLeft, IP_SERVER, PORT_SERVER);
+				acumulacionX.clear();
+				acumulacionY.clear();
+				movimientoTimer.restart();
 			}
 
-			for (int a : acumulacionY)
+			//Actualizar tiempo
+			if (timer.getElapsedTime().asSeconds() >= 1)
 			{
-				y += a;
+				currentTime--;
+				timer.restart();
 			}
-			pckLeft << ACOMOVE << x<< y;
-			sock.send(pckLeft, IP_SERVER, PORT_SERVER);
-			acumulacionX.clear();
-			acumulacionY.clear();
-			movimientoTimer.restart();
-		}
 
-		//Actualizar tiempo
-		if (timer.getElapsedTime().asSeconds() >= 1)
-		{
-			currentTime--;
-			timer.restart();
-		}
+			//Mandar hello y sus acumulaciones
+			if (helloTimer.getElapsedTime().asMilliseconds() >= 2500)
+			{
+				sf::Packet send;
+				//Afegim un hello nou
+				acumulacionHello.push_back(acumulacionHello.size());
 
-		//Mandar hello
-		if (helloTimer.getElapsedTime().asMilliseconds() >= 500)
-		{
-			sf::Packet send;
-			send << HELLO << (int)acumulacionHello.size();
-			int r = rand() % 100 + 1;
-			if (r > 20)	//20% de perder el paquete
-			{
-				sock.send(send, IP_SERVER, PORT_SERVER);
-			}
-			else
-			{
-				std::cout << "LOST PACKET" << std::endl;
-			}
-			acumulacionHello.push_back(acumulacionHello.size());
-			helloTimer.restart();
-		}
+				//Indiquem la mida
+				send << HELLO << (int)acumulacionHello.size();
 
-		//Si tenemos paquetes HELLO acumulados
-		if (hello.getElapsedTime().asMilliseconds() >= 200 && acumulacionHello.size() > 0)
-		{
-			sf::Packet send;
-			//Los re-enviamos de nuevo
-			for (auto i : acumulacionHello)
-			{
-				send << HELLO << i;
+				//Enviem tots els hellos no rebuts
+				for (int i = 0; i < acumulacionHello.size(); i++)
+				{
+					send << acumulacionHello[i];
+				}
 
 				int r = rand() % 100 + 1;
 				if (r > 20)	//20% de perder el paquete
@@ -220,15 +211,15 @@ void DibujaSFML()
 				{
 					std::cout << "LOST PACKET" << std::endl;
 				}
-				send.clear();
+				helloTimer.restart();
 			}
-			helloTimer.restart();
 		}
 
 		sf::Socket::Status status = sock.receive(pck, ipRem, portRem);
 		if (status == sf::Socket::Done)
 		{
-			int id,pos;
+			int id,pos,aux;
+			std::vector<int>hellosDelete;
 			pck >> id;
 			switch (id)
 			{
@@ -289,14 +280,19 @@ void DibujaSFML()
 			case WELLCOME:
 				//Obtengo el id del paquete
 				pck >> pos;
+				hellosDelete.clear();
 				id = -1;
 				//Busco el indice con este paquete
-				for (int i = 0; i < acumulacionHello.size(); i++)
+				for (int j = 0; j < pos; j++)
 				{
-					if (acumulacionHello[i] == pos)id = i;
+					pck >> id;
+					aux = -1;
+					for (int i = 0; i <acumulacionHello.size(); i++)
+					{
+						if (acumulacionHello[i] == id)aux=i;
+					}
+					if(aux!=-1)acumulacionHello.erase(acumulacionHello.begin() + aux);
 				}
-				//Elimino el paquete de pendiente
-				if(id!=-1)acumulacionHello.erase(acumulacionHello.begin() + id);
 				break;
 			case ACK_ACOMOVE:
 				pck>>localPlayer->previusX;
