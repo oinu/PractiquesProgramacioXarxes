@@ -64,6 +64,7 @@ int main()
 	sf::TcpSocket socket;
 	sf::TcpListener listener;
 	sf::SocketSelector ss;
+	bool turno = true;
 
 	char connectionType;
 	char buffer[BUFFER_SIZE];
@@ -254,7 +255,7 @@ int main()
 		std::string mensaje_ = mensaje + "_";
 		text.setString(mensaje_);
 		window.draw(text);
-		game.DrawScene(&window);
+		game.DrawScene(&window,turno);
 
 
 		window.display();

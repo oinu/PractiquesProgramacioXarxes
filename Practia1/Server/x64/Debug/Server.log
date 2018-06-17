@@ -1,5 +1,1 @@
-﻿  main.cpp
-c:\users\alumne\desktop\practiquesprogramacioxarxes\practia1\client\game.h(27): warning C4305: 'argument': truncation from 'double' to 'float'
-c:\users\alumne\desktop\practiquesprogramacioxarxes\practia1\server\main.cpp(58): warning C4101: 'recived': unreferenced local variable
-c:\users\alumne\desktop\practiquesprogramacioxarxes\practia1\server\main.cpp(56): warning C4101: 'buffer': unreferenced local variable
-  Server.vcxproj -> C:\Users\alumne\Desktop\PractiquesProgramacioXarxes\Practia1\x64\Debug\Server.exe
+﻿

@@ -4,6 +4,7 @@
 
 Game::Game()
 {
+	srand(time(NULL));
 	//JUGADORES Y SUS POSICIONES EN EL TABLERO
 	listPlayers = new Player[4];
 	listPlayers[0].carta1.img.setPosition(sf::Vector2f(310, 420));
@@ -28,6 +29,8 @@ Game::Game()
 	{
 		cartasTablero[i].img.setPosition(sf::Vector2f(200+(80*i), 220));
 	}
+
+	apuestaActual = 10;
 }
 
 
@@ -35,12 +38,142 @@ Game::~Game()
 {
 }
 
-void Game::DrawScene(sf::RenderWindow* window)
+void Game::InitServer()
+{
+	//Creamos el mazo ordenado
+	std::vector<Carta>ordenado;
+	for (int i = 0; i<4; i++)
+	{
+		for (int j = 1; j < 14; j++)
+		{
+			sf::Texture t;
+			std::string s;
+			sf::Sprite img;
+			img.scale(sf::Vector2f(0.16, 0.16));
+			//Diamantes
+			if (i == 0)
+			{
+				if (j == 1)
+				{
+					s = "./img/A_D.png";
+				}
+				else if (j == 11)
+				{
+					s = "./img/J_D.png";
+				}
+				else if (j == 12)
+				{
+					s = "./img/Q_D.png";
+				}
+				else if (j == 13)
+				{
+					s = "./img/K_D.png";
+				}
+				else
+				{
+					s = "./img/" + std::to_string(j) + "_D.png";
+				}
+			}
+			//TREBOLS
+			if (i == 1)
+			{
+				if (j == 1)
+				{
+					s = "./img/A_T.png";
+				}
+				else if (j == 11)
+				{
+					s = "./img/J_T.png";
+				}
+				else if (j == 12)
+				{
+					s = "./img/Q_T.png";
+				}
+				else if (j == 13)
+				{
+					s = "./img/K_T.png";
+				}
+				else
+				{
+					s = "./img/" + std::to_string(j) + "_T.png";
+				}
+			}
+			//PICAS
+			if (i == 2)
+			{
+				if (j == 1)
+				{
+					s = "./img/A_A.png";
+				}
+				else if (j == 11)
+				{
+					s = "./img/J_A.png";
+				}
+				else if (j == 12)
+				{
+					s = "./img/Q_A.png";
+				}
+				else if (j == 13)
+				{
+					s = "./img/K_A.png";
+				}
+				else
+				{
+					s = "./img/" + std::to_string(j) + "_A.png";
+				}
+			}
+			//CORAZONES
+			if (i == 3)
+			{
+				if (j == 1)
+				{
+					s = "./img/A_H.png";
+				}
+				else if (j == 11)
+				{
+					s = "./img/J_H.png";
+				}
+				else if (j == 12)
+				{
+					s = "./img/Q_H.png";
+				}
+				else if (j == 13)
+				{
+					s = "./img/K_H.png";
+				}
+				else
+				{
+					s = "./img/" + std::to_string(j) + "_H.png";
+				}
+			}
+
+			if (!t.loadFromFile(s))
+			{
+				std::cout << "Error cargar imagen" << std::endl;
+			}
+			Carta c(j, (Palos)i, t, img);
+			ordenado.push_back(c);
+		}
+	}
+
+	int size = ordenado.size();
+	for (int i = 0; i < size; i++)
+	{
+		int r = rand() % ordenado.size();
+		Mazo.push_back(ordenado[r]);
+		ordenado.erase(ordenado.begin() + r);
+	}
+}
+
+void Game::DrawScene(sf::RenderWindow* window,bool turno)
 {
 	//PINTAR BACKGROUND
 	window->draw(tablero);
 
 	//PINTAR JUGADORES
+	listPlayers[0].carta1.img.setPosition(sf::Vector2f(310, 420));
+	listPlayers[0].carta2.img.setPosition(sf::Vector2f(390, 420));
+
 	for (int i = 0; i < 4; i++)
 	{
 		window->draw(listPlayers[i].carta1.img);
@@ -54,9 +187,12 @@ void Game::DrawScene(sf::RenderWindow* window)
 	}
 
 	//PINTAR BOTONES
-	window->draw(raiseButton);
-	window->draw(callButton);
-	window->draw(foldButton);
+	if (turno)
+	{
+		window->draw(raiseButton);
+		window->draw(callButton);
+		window->draw(foldButton);
+	}
 
 	//PINTAR TEXTO TOTAL MESA
 	total = "TOTAL EN MESA: "+ std::to_string(efectivoMesa)+"	APUESTA ACTUAL: " + std::to_string(apuestaActual);
@@ -110,4 +246,11 @@ void Game::InitClient(sf::Font aFont)
 	foldButton = (sf::Sprite)foldbuttonText;
 	foldButton.setPosition(190, 500);
 	foldButton.scale(sf::Vector2f(0.2, 0.2));
+}
+
+Carta Game::DarCarta()
+{
+	Carta c=Mazo[0];
+	Mazo.erase(Mazo.begin());
+	return c;
 }

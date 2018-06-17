@@ -6,7 +6,7 @@
 #include <vector>
 
 enum Palos{ DIAMANTE, TREBOL, PICA, CORAZON, OCULTO };
-enum Code{MENSAJE};
+enum Code{MENSAJE,DESCARTAR,IGUALAR,SUBIR,TURNO,COINS,HELLO,CARTAS, TABLERO,NEW_GAME};
 
 struct Carta
 {
@@ -27,6 +27,18 @@ struct Carta
 		img.scale(sf::Vector2f(0.16, 0.16));
 		
 	}
+	Carta::Carta(int num, Palos p, std::string s)
+	{
+		numero = num;
+		palo = p;
+		if (!texture.loadFromFile(s))
+		{
+			std::cout << "Error cargar imagen" << std::endl;
+		}
+		img = (sf::Sprite)texture;
+		img.scale(sf::Vector2f(0.16, 0.16));
+
+	}
 
 	Carta::Carta(int aNum, Palos aPalo,sf::Texture aTexture, sf::Sprite aImg)
 	{
@@ -40,16 +52,19 @@ struct Carta
 
 struct Player
 {
+	std::string name;
 	Carta carta1;
 	Carta carta2;
 	int efectivo;
 	int cantidadApostada;
+	bool passa;
 
 	Player::Player()
 	{
 		//Comprovar que se llaman al constructor de carta
 		efectivo = 1000;
 		cantidadApostada = 0;
+		passa = false;
 	}
 
 	Player::Player(Carta c1, Carta c2)
@@ -58,6 +73,7 @@ struct Player
 		carta2 = c2;
 		efectivo = 1000;
 		cantidadApostada = 0;
+		passa = false;
 	}
 };
 
@@ -65,6 +81,7 @@ class Game
 {
 public:
 	std::vector<Player*> players;
+	std::vector<Carta>Mazo;
 	Player* listPlayers ;
 	Carta* cartasTablero;
 	sf::Texture texture;
@@ -84,7 +101,9 @@ public:
 	int apuestaActual;
 	Game();
 	~Game();
-	void DrawScene(sf::RenderWindow* window);
+	void InitServer();
+	void DrawScene(sf::RenderWindow* window,bool turno);
 	void InitClient(sf::Font aFont);
+	Carta DarCarta();
 };
 

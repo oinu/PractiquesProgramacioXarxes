@@ -14,8 +14,17 @@
 
 using namespace std;
 std::mutex mu;
-bool turno = true;
+bool turno = false;
+std::vector<Carta>baraja;
 Game game;
+
+int numeroCarta1;
+int numeroCarta2;
+Palos pCarta1;
+Palos pCarta2;
+std::string sCarta1;
+std::string sCarta2;
+std::string tablero[5];
 
 //Escucha por un socket determinado y escribe el mensaje llegado.
 //socket: Es el socket al cual debemos escuchar.
@@ -25,72 +34,6 @@ void RecivedFunction(sf::TcpSocket* socket,size_t* recived, vector<string>* aMen
 {
 	while (window->isOpen())
 	{
-		/*char buffer[BUFFER_SIZE];
-		int codigo;
-		int cantidad;
-		string s;
-		sf::Socket::Status status = socket->receive(buffer, sizeof(buffer), *recived);
-		
-		if (status == sf::Socket::Status::Done)
-		{
-			s = buffer;
-			codigo = atoi(&s[0]);
-			s.erase(s.begin(), s.begin() + 1);
-			if(codigo==6)cout << "Total en mesa: " + to_string(game.efectivoMesa) << endl;
-			switch (codigo)
-			{
-			case 0:
-				mu.lock();
-				aMensajes->push_back(s);
-				if (aMensajes->size() > 9)
-				{
-					aMensajes->erase(aMensajes->begin(), aMensajes->begin() + 1);
-				}
-				mu.unlock();
-				break;
-			case 4:
-				//ES EL PRIMERO
-				if (s.size() > 0)
-				{
-					mu.lock();
-					aMensajes->push_back(s);
-					if (aMensajes->size() > 9)
-					{
-						aMensajes->erase(aMensajes->begin(), aMensajes->begin() + 1);
-					}
-					mu.unlock();
-				}
-				turno = true;
-				break;
-			case 5:
-				turno = true;
-				break;
-			
-			//CONFIRMA SUBE APUESTA
-			case 6:
-				cantidad = stoi(s);
-				//cout << to_string(cantidad )<< endl;
-				/*game.listPlayers[0].efectivo -= cantidad;
-				game.apuestaActual += 10;
-				game.efectivoMesa += cantidad;
-				turno = false;
-				break;
-			//CONFIRMA IGUALA
-			case 7:
-				cantidad = stoi(s);
-				//cout << to_string(cantidad )<< endl;
-				/*game.listPlayers[0].efectivo -= cantidad;
-				game.efectivoMesa += cantidad;
-				turno = false;
-				break;
-			//CONFIRMA DESCARTE
-			case 8:
-				turno = false;
-				break;
-			default:
-				break;
-			}
-		}*/
 		int code;
 		string text;
 		sf::Packet pck;
@@ -110,6 +53,350 @@ void RecivedFunction(sf::TcpSocket* socket,size_t* recived, vector<string>* aMen
 				}
 				mu.unlock();
 			}
+			else if (code == Code::SUBIR)
+			{
+				pck >> game.apuestaActual>>game.efectivoMesa;
+			}
+			else if (code == Code::IGUALAR)
+			{
+				pck >> game.efectivoMesa;
+			}
+			else if (code == Code::COINS)
+			{
+				pck >> game.listPlayers[0].efectivo;
+			}
+			else if (code == Code::TURNO)
+			{
+				turno = true;
+			}
+			else if (code == Code::CARTAS)
+			{
+				int num, palo;
+				pck >> num >> palo;
+
+				std::string s;
+				//Diamantes
+				if (palo == 0)
+				{
+					if (num == 1)
+					{
+						s = "./img/A_D.png";
+					}
+					else if (num == 11)
+					{
+						s = "./img/J_D.png";
+					}
+					else if (num == 12)
+					{
+						s = "./img/Q_D.png";
+					}
+					else if (num == 13)
+					{
+						s = "./img/K_D.png";
+					}
+					else
+					{
+						s = "./img/" + std::to_string(num) + "_D.png";
+					}
+				}
+				//TREBOLS
+				if (palo == 1)
+				{
+					if (num == 1)
+					{
+						s = "./img/A_T.png";
+					}
+					else if (num == 11)
+					{
+						s = "./img/J_T.png";
+					}
+					else if (num == 12)
+					{
+						s = "./img/Q_T.png";
+					}
+					else if (num == 13)
+					{
+						s = "./img/K_T.png";
+					}
+					else
+					{
+						s = "./img/" + std::to_string(num) + "_T.png";
+					}
+				}
+				//PICAS
+				if (palo == 2)
+				{
+					if (num == 1)
+					{
+						s = "./img/A_A.png";
+					}
+					else if (num == 11)
+					{
+						s = "./img/J_A.png";
+					}
+					else if (num == 12)
+					{
+						s = "./img/Q_A.png";
+					}
+					else if (num == 13)
+					{
+						s = "./img/K_A.png";
+					}
+					else
+					{
+						s = "./img/" + std::to_string(num) + "_A.png";
+					}
+				}
+				//CORAZONES
+				if (palo == 3)
+				{
+					if (num == 1)
+					{
+						s = "./img/A_H.png";
+					}
+					else if (num == 11)
+					{
+						s = "./img/J_H.png";
+					}
+					else if (num == 12)
+					{
+						s = "./img/Q_H.png";
+					}
+					else if (num == 13)
+					{
+						s = "./img/K_H.png";
+					}
+					else
+					{
+						s = "./img/" + std::to_string(num) + "_H.png";
+					}
+				}
+				sCarta1 = s;
+
+				pck >> num >> palo;
+				//Diamantes
+				if (palo == 0)
+				{
+					if (num == 1)
+					{
+						s = "./img/A_D.png";
+					}
+					else if (num == 11)
+					{
+						s = "./img/J_D.png";
+					}
+					else if (num == 12)
+					{
+						s = "./img/Q_D.png";
+					}
+					else if (num == 13)
+					{
+						s = "./img/K_D.png";
+					}
+					else
+					{
+						s = "./img/" + std::to_string(num) + "_D.png";
+					}
+				}
+				//TREBOLS
+				if (palo == 1)
+				{
+					if (num == 1)
+					{
+						s = "./img/A_T.png";
+					}
+					else if (num == 11)
+					{
+						s = "./img/J_T.png";
+					}
+					else if (num == 12)
+					{
+						s = "./img/Q_T.png";
+					}
+					else if (num == 13)
+					{
+						s = "./img/K_T.png";
+					}
+					else
+					{
+						s = "./img/" + std::to_string(num) + "_T.png";
+					}
+				}
+				//PICAS
+				if (palo == 2)
+				{
+					if (num == 1)
+					{
+						s = "./img/A_A.png";
+					}
+					else if (num == 11)
+					{
+						s = "./img/J_A.png";
+					}
+					else if (num == 12)
+					{
+						s = "./img/Q_A.png";
+					}
+					else if (num == 13)
+					{
+						s = "./img/K_A.png";
+					}
+					else
+					{
+						s = "./img/" + std::to_string(num) + "_A.png";
+					}
+				}
+				//CORAZONES
+				if (palo == 3)
+				{
+					if (num == 1)
+					{
+						s = "./img/A_H.png";
+					}
+					else if (num == 11)
+					{
+						s = "./img/J_H.png";
+					}
+					else if (num == 12)
+					{
+						s = "./img/Q_H.png";
+					}
+					else if (num == 13)
+					{
+						s = "./img/K_H.png";
+					}
+					else
+					{
+						s = "./img/" + std::to_string(num) + "_H.png";
+					}
+				}
+				sCarta2 = s;
+
+			}
+			else if (code == Code::TABLERO)
+			{
+				int size;
+				int num, palo;
+				std::string s;
+				pck >> size;
+				for (int i = 0; i < size; i++)
+				{
+					s = "";
+					pck >> num >> palo;
+					//Diamantes
+					if (palo == 0)
+					{
+						if (num == 1)
+						{
+							s = "./img/A_D.png";
+						}
+						else if (num == 11)
+						{
+							s = "./img/J_D.png";
+						}
+						else if (num == 12)
+						{
+							s = "./img/Q_D.png";
+						}
+						else if (num == 13)
+						{
+							s = "./img/K_D.png";
+						}
+						else
+						{
+							s = "./img/" + std::to_string(num) + "_D.png";
+						}
+					}
+					//TREBOLS
+					else if (palo == 1)
+					{
+						if (num == 1)
+						{
+							s = "./img/A_T.png";
+						}
+						else if (num == 11)
+						{
+							s = "./img/J_T.png";
+						}
+						else if (num == 12)
+						{
+							s = "./img/Q_T.png";
+						}
+						else if (num == 13)
+						{
+							s = "./img/K_T.png";
+						}
+						else
+						{
+							s = "./img/" + std::to_string(num) + "_T.png";
+						}
+					}
+					//PICAS
+					else if (palo == 2)
+					{
+						if (num == 1)
+						{
+							s = "./img/A_A.png";
+						}
+						else if (num == 11)
+						{
+							s = "./img/J_A.png";
+						}
+						else if (num == 12)
+						{
+							s = "./img/Q_A.png";
+						}
+						else if (num == 13)
+						{
+							s = "./img/K_A.png";
+						}
+						else
+						{
+							s = "./img/" + std::to_string(num) + "_A.png";
+						}
+					}
+					//CORAZONES
+					else if (palo == 3)
+					{
+						if (num == 1)
+						{
+							s = "./img/A_H.png";
+						}
+						else if (num == 11)
+						{
+							s = "./img/J_H.png";
+						}
+						else if (num == 12)
+						{
+							s = "./img/Q_H.png";
+						}
+						else if (num == 13)
+						{
+							s = "./img/K_H.png";
+						}
+						else
+						{
+							s = "./img/" + std::to_string(num) + "_H.png";
+						}
+					}
+					else
+					{
+						s = "./img/Reverso.png";
+					}
+					tablero[i] = s;
+				}
+			}
+			else if (code == Code::NEW_GAME)
+			{
+				sCarta1 = "./img/Reverso.png";
+				sCarta2 = "./img/Reverso.png";
+				for (int i = 0; i < 5; i++)
+				{
+					tablero[i]= "./img/Reverso.png";
+				}
+				game.apuestaActual = 10;
+				game.efectivoMesa = 0;
+			}
 		}
 	}
 	
@@ -124,10 +411,23 @@ int main()
 	sf::TcpSocket socket;
 	sf::TcpSocket::Status socketStatus;
 	size_t recived;
+	sCarta2 = "./img/Reverso.png";
+	sCarta1 = "./img/Reverso.png";
+	for (int i =0 ;i<5;i++)
+	{
+		tablero[i]= "./img/Reverso.png";
+	}
 
 	// Obtenemos nuestra direccion ip, y nos connectamos con el puerto indicado y nuestra ip
 	sf::IpAddress ip = sf::IpAddress::getLocalAddress();
 	socket.connect(ip, CLIENT_PORT);
+	sf::Packet p;
+	p << HELLO << playerName;
+	socketStatus=socket.send(p);
+	if (socketStatus == sf::TcpSocket::Status::Disconnected)
+	{
+		cout << "SERVIDOR DESCONNECTADO";
+	}
 
 	std::vector<std::string> aMensajes;
 
@@ -166,7 +466,7 @@ int main()
 
 	//EL JUEGO
 	game.InitClient(font);
-	
+
 	//RECIVE
 	//Se genera un thread (hilo), que escucha si llegan mensajes o no.
 	thread t(RecivedFunction, &socket, &recived, &aMensajes, &window);
@@ -209,19 +509,16 @@ int main()
 				}
 				break;
 			case sf::Event::MouseButtonPressed:
-				mousePosition = sf::Mouse::getPosition();
-				if (turno)
+				mousePosition = sf::Mouse::getPosition(window);
+				if(turno)
 				{
 
 					//DESCARTAR MANO
-					if (mousePosition.x > 760 && mousePosition.x < 880 && mousePosition.y > 680 && mousePosition.y < 715)
+					if (mousePosition.x > 195 && mousePosition.x < 305 && mousePosition.y > 505 && mousePosition.y < 535)
 					{
-						//TO DO
-
-						/*msn = std::to_string(3);
-						cout << "DESCARTA" << endl;
-						socketStatus = socket.send(msn.c_str(), msn.size() + 1);
-						turno = false;
+						sf::Packet send;
+						send << Code::DESCARTAR;
+						socketStatus =socket.send(send);
 						if (socketStatus == sf::TcpSocket::Status::Disconnected)
 						{
 							msn = "Server Disconnected";
@@ -230,22 +527,16 @@ int main()
 							{
 								aMensajes.erase(aMensajes.begin(), aMensajes.begin() + 1);
 							}
-						}*/
+						}
+						turno = false;
 					}
 					//IGUALAR APUESTA
-					else if (mousePosition.x > 760 && mousePosition.x < 880 && mousePosition.y > 640 && mousePosition.y < 675)
+					else if (mousePosition.x > 195 && mousePosition.x < 305 && mousePosition.y > 465 && mousePosition.y < 495)
 					{
 						//TO DO
-
-						/*msn = std::to_string(2);
-						cout << "IGUALA APUESTA" << endl;
-						socketStatus = socket.send(msn.c_str(), msn.size() + 1);
-						
-						//cambio en local
-						game.listPlayers[0].efectivo -= game.apuestaActual;
-						game.efectivoMesa += game.apuestaActual;
-						turno = false;
-
+						sf::Packet send;
+						send << Code::IGUALAR;
+						socketStatus = socket.send(send);
 						if (socketStatus == sf::TcpSocket::Status::Disconnected)
 						{
 							msn = "Server Disconnected";
@@ -254,23 +545,18 @@ int main()
 							{
 								aMensajes.erase(aMensajes.begin(), aMensajes.begin() + 1);
 							}
-						}*/
+						}
+
+						turno = false;
 					}
 					//SUBIR APUESTA
-					else if (mousePosition.x > 760 && mousePosition.x < 880 && mousePosition.y > 590 && mousePosition.y < 635)
+					else if (mousePosition.x > 195 && mousePosition.x < 305 && mousePosition.y > 425 && mousePosition.y < 455)
 					{
 						//TO DO
 
-						/*msn = std::to_string(1);
-						cout << "SUBE APUESTA" << endl;
-						socketStatus = socket.send(msn.c_str(), msn.size() + 1);
-
-						//Cambiar copia en local
-						game.apuestaActual += 10;
-						game.listPlayers[0].efectivo -= game.apuestaActual;
-						game.efectivoMesa += game.apuestaActual;
-						turno = false;
-
+						sf::Packet send;
+						send << Code::SUBIR;
+						socketStatus = socket.send(send);
 						if (socketStatus == sf::TcpSocket::Status::Disconnected)
 						{
 							msn = "Server Disconnected";
@@ -279,7 +565,8 @@ int main()
 							{
 								aMensajes.erase(aMensajes.begin(), aMensajes.begin() + 1);
 							}
-						}*/
+						}
+						turno = false;
 					}
 				}
 				break;
@@ -306,7 +593,31 @@ int main()
 		window.draw(text);
 
 		//PINTAMOS EL JUEGO
-		game.DrawScene(&window);
+		Carta c(numeroCarta1, pCarta1, sCarta1);
+		Carta c2(numeroCarta2, pCarta2, sCarta2);
+		game.listPlayers[0].carta1 = c;
+		game.listPlayers[0].carta2 = c2;
+
+		Carta ct(numeroCarta1, pCarta1, tablero[0]);
+		game.cartasTablero[0] = ct;
+
+		Carta ct2(numeroCarta1, pCarta1, tablero[1]);
+		game.cartasTablero[1] = ct2;
+
+		Carta ct3(numeroCarta1, pCarta1, tablero[2]);
+		game.cartasTablero[2] = ct3;
+
+		Carta ct4(numeroCarta1, pCarta1, tablero[3]);
+		game.cartasTablero[3] = ct4;
+
+		Carta ct5(numeroCarta1, pCarta1, tablero[4]);
+		game.cartasTablero[4] = ct5;
+
+		for (int i = 0; i<5; i++)
+		{
+			game.cartasTablero[i].img.setPosition(sf::Vector2f(200 + (80 * i), 220));
+		}
+		game.DrawScene(&window,turno);
 		
 
 		window.display();

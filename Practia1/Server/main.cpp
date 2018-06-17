@@ -13,9 +13,20 @@
 
 
 using namespace std;
+Game game;
 
 void DisconnectUser(vector<sf::TcpSocket*>& list, sf::SocketSelector *ss, int i)
 {
+	//Informamos que un usuario se ha desconectado
+
+	string text = game.listPlayers[i].name;
+	text += " is disconnected";
+	sf::Packet send;
+	send << Code::MENSAJE << text;
+	for (auto s : list)
+	{
+		s->send(send);
+	}
 
 	//Lo eliminamos del Socket Selector
 	ss->remove(*list[i]);
@@ -27,18 +38,149 @@ void DisconnectUser(vector<sf::TcpSocket*>& list, sf::SocketSelector *ss, int i)
 
 	//Eliminamos el socket de la lista
 	list.erase(list.begin() + i, list.begin() + i + 1);
-
-	
-	//Informamos que un usuario se ha desconectado
-	//TO DO
-
-
-	/*
-	for (sf::TcpSocket* socket : list)
+}
+void DarCartasJugadores(vector<sf::TcpSocket*>& list)
+{
+	sf::Packet send;
+	for (int i = 0; i < list.size(); i++)
 	{
-		string outMsn = std::to_string(0)+"A User Disconected";
-		socket->send(outMsn.c_str(), outMsn.size() + 1);
-	}*/
+		game.listPlayers[i].carta1 = game.DarCarta();
+		game.listPlayers[i].carta2 = game.DarCarta();
+
+		send.clear();
+		send << CARTAS << game.listPlayers[i].carta1.numero << (int)game.listPlayers[i].carta1.palo;
+		send << game.listPlayers[i].carta2.numero << (int)game.listPlayers[i].carta2.palo;
+		list[i]->send(send);
+	}
+}
+void PonerCartasTablero(vector<sf::TcpSocket*>& list)
+{
+	for (int i = 0; i < 5; i++)
+	{
+		game.cartasTablero[i] = game.DarCarta();
+	}
+	sf::Packet pck;
+	pck << TABLERO << 3;
+	for (int i = 0; i < 3; i++)
+	{
+		pck << game.cartasTablero[i].numero;
+		pck << (int)game.cartasTablero[i].palo;
+	}
+	for (auto p : list)
+	{
+		p->send(pck);
+	}
+	
+}
+
+bool Pareja(Player p)
+{
+	if (p.carta1.numero == p.carta1.numero)
+		return true;
+	else
+	{
+		for (int i = 0; i < 5; i++)
+		{
+			if (p.carta1.numero == game.cartasTablero[i].numero)return true;
+			else if(p.carta2.numero == game.cartasTablero[i].numero)return true;
+		}
+		return false;
+	}
+}
+bool DoblePareja(Player p)
+{
+	bool primera=false, segunda=false;
+	for (int i = 0; i < 5; i++)
+	{
+		if (p.carta1.numero == game.cartasTablero[i].numero)primera= true;
+		else if (p.carta2.numero == game.cartasTablero[i].numero)segunda= true;
+	}
+	return primera && segunda;
+}
+bool CartaAlta(Player p)
+{
+	bool primera,segunda;
+	for (int i = 0; i < 4; i++)
+	{
+		primera = (p.carta1.numero > game.listPlayers[i].carta1.numero || p.carta1.numero > game.listPlayers[i].carta2.numero);
+		segunda = (p.carta2.numero > game.listPlayers[i].carta1.numero || p.carta2.numero > game.listPlayers[i].carta2.numero);
+		if (!primera && !segunda) return false;
+	}
+	return true;
+}
+bool Trio(Player p)
+{
+	if (p.carta1.numero == p.carta1.numero)
+	{
+		for (int i = 0; i < 5; i++)
+		{
+			if (p.carta1.numero == game.cartasTablero[i].numero)return true;
+		}
+		return false;
+	}
+	else
+	{
+		bool primera, segunda;
+		for (int i = 0; i < 5; i++)
+		{
+			if (p.carta1.numero == game.cartasTablero[i].numero)
+			{
+				for (int j = i+1; j < 5; j++)
+				{
+					if (p.carta1.numero == game.cartasTablero[j].numero) return true;
+				}
+			}
+			else if (p.carta2.numero == game.cartasTablero[i].numero) 
+			{
+				for (int j = i + 1; j < 5; j++)
+				{
+					if (p.carta2.numero == game.cartasTablero[j].numero) return true;
+				}
+			}
+		}
+		return false;
+	}
+}
+bool Full(Player p)
+{
+	if (p.carta1.numero == p.carta2.numero)
+	{
+		for (int i = 0; i < 3; i++)
+		{
+			for (int j = i + 1; j < 4; j++)
+			{
+				if (game.cartasTablero[i].numero == game.cartasTablero[i].numero && game.cartasTablero[i].numero == game.cartasTablero[j + 1].numero)
+				{
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+	else
+	{
+		return Pareja(p) && Trio(p);
+	}
+}
+bool Pocker(Player p)
+{
+	if (p.carta1.numero == p.carta2.numero)
+	{
+		bool primera = false;
+		bool segunda = false;
+		for (int i = 0; i < 5; i++)
+		{
+			if (primera)
+			{
+				segunda = p.carta1.numero == game.cartasTablero[i].numero;
+			}
+			else primera= p.carta1.numero == game.cartasTablero[i].numero;
+		}
+
+		return primera && segunda;
+	}
+	else return false;
 }
 
 int main()
@@ -46,6 +188,10 @@ int main()
 	//VARIABLES DE JUEGO
 	int jugadorActual=-1;
 	bool start = false;
+	int cartasMostrar = 3;
+	cout << "CREANDO BARAJA ESPERA..." << endl;
+	game.InitServer();
+	cout << "PUEDE CONNECTARSE!" << endl;
 
 	//ESTABLECER CONNECION
 	sf::SocketSelector ss;
@@ -65,17 +211,15 @@ int main()
 	//Añadimos el listener al Socket Selector
 	ss.add(listener);
 
-	Game game;
-
 	while (listenerStatus != sf::TcpListener::Status::Disconnected)
 	{
 		//Mientras haya elementos en el Socket Selector, esperara a que algun socket le envie algo.
 		while (ss.wait())
 		{
 			//Comprovamos si es un Listener
-			if (ss.isReady(listener))
+			if (ss.isReady(listener) && socketList.size()<4)
 			{
-
+				jugadorActual = 0;
 				//Se añade el socket al Socket Selector
 				sf::TcpSocket* socket = new sf::TcpSocket();
 				//Esperamos peticion de un cliente
@@ -85,22 +229,16 @@ int main()
 					socketList.push_back(socket);
 				}
 				ss.add(*socket);
-				
-				//Les indicamos que se ha connectado un nuevo usuario
-				//TO DO
 
-				/*msn = std::to_string(0)+"New User Connected!";
-				for (sf::TcpSocket* s : socketList)
+				if (socketList.size() == 4 && !start)
 				{
-					if (s == socketList[0] && socketList.size()== 4)
-					{
-						msn = std::to_string(4) + "New User Connected!";
-					}
-
-					if(s!=socket)s->send(msn.c_str(), msn.size() + 1);
+					start = true;
+					sf::Packet pck;
+					pck << TURNO;
+					socketList[0]->send(pck);
+					DarCartasJugadores(socketList);
+					PonerCartasTablero(socketList);
 				}
-				cout << "New User Connecte" << endl;
-				*/
 			}
 
 			//Si no es el listener, sera un socket
@@ -134,110 +272,214 @@ int main()
 									s->send(send);
 								}
 							}
-							//TO DO
-
+							else if (code == Code::HELLO)
 							{
-								//msn = buffer;
-								//int codigo = atoi(&buffer[0]);
-								//sf::TcpSocket::Status st;
-								//switch (codigo)
-								//{
-								//case 0:
-								//	//Enviamos el mensajes
-								//	/*for (int i = 0; i < socketList.size(); i++)
-								//	{
-								//		st = socketList[i]->send(msn.c_str(), msn.size() + 1);
+								pck >> text;
+								game.listPlayers[jugadorActual].name = text;
+								text += " is connected";
+								sf::Packet sendPck;
+								sendPck << MENSAJE << text;
+								for (int i = 0; i < socketList.size(); i++)
+								{
+									if (i != j)socketList[i]->send(sendPck);
+								}
+							}
+							else if (!game.listPlayers[jugadorActual].passa)
+							{
+								if (code == Code::IGUALAR)
+								{
+									game.listPlayers[jugadorActual].efectivo -= game.apuestaActual;
+									game.efectivoMesa += game.apuestaActual;
+									sf::Packet send;
+									send << Code::IGUALAR << (int)game.efectivoMesa;
+									for (auto s : socketList)
+									{
+										socketStatus = s->send(send);
+										if (socketStatus == sf::TcpSocket::Status::Disconnected)
+										{
+											DisconnectUser(socketList, &ss, j);
+										}
+									}
+									send.clear();
+									send << COINS << game.listPlayers[jugadorActual].efectivo;
+									socketStatus = socketList[j]->send(send);
 
-								//		if (st == sf::TcpSocket::Status::Error)
-								//		{
-								//			cout << "Error al enviar" << endl;
-								//		}
+									if (socketStatus == sf::TcpSocket::Status::Disconnected)
+									{
+										DisconnectUser(socketList, &ss, j);
+									}
+								}
 
-								//	}*/
-								//	break;
-								//case 1:
-								//	msn.clear();
-								//	//Subimos la cantidad para apostar
-								//	game.apuestaActual += 10;
+								else if (code == Code::SUBIR)
+								{
+									game.apuestaActual += 10;
+									game.listPlayers[jugadorActual].efectivo -= game.apuestaActual;
+									game.efectivoMesa += game.apuestaActual;
 
-								//	//Le restamos dicha cantidad al jugador
-								//	game.listPlayers[jugadorActual].efectivo -= game.apuestaActual;
+									sf::Packet send;
+									send << Code::SUBIR << (int)game.apuestaActual << (int)game.efectivoMesa;
+									for (auto s : socketList)
+									{
+										socketStatus = s->send(send);
+										if (socketStatus == sf::TcpSocket::Status::Disconnected)
+										{
+											DisconnectUser(socketList, &ss, j);
+										}
+									}
+									send.clear();
+									send << COINS << game.listPlayers[jugadorActual].efectivo;
+									socketStatus = socketList[j]->send(send);
 
-								//	//Sumamos la cantidad a la mesa
-								//	game.efectivoMesa += game.apuestaActual;
-								//	
-								//	//Le indicamos que la tranasacion es correcta
-								//	msn = to_string(6)+to_string(game.apuestaActual);
+									if (socketStatus == sf::TcpSocket::Status::Disconnected)
+									{
+										DisconnectUser(socketList, &ss, j);
+									}
+								}
+
+								else if (code == Code::DESCARTAR)
+								{
+									game.listPlayers[jugadorActual].passa = true;
+								}
+
+								do
+								{
+									jugadorActual++;
+									if (jugadorActual == socketList.size())
+									{
+										jugadorActual = 0;
+										cartasMostrar++;
+										if (cartasMostrar < 6)
+										{
+											sf::Packet pck;
+											pck << TABLERO << cartasMostrar;
+											for (int i = 0; i < cartasMostrar; i++)
+											{
+												pck << game.cartasTablero[i].numero;
+												pck << (int)game.cartasTablero[i].palo;
+											}
+											for (auto p : socketList)
+											{
+												p->send(pck);
+											}
+										}
+										else
+										{
+											//Comprovamos que manos tienen
+											std::vector<int>ganadores;
+											for (int i = 0; i < 4; i++)
+											{
+												if(game.listPlayers[i].passa)ganadores.push_back(-1);
+												else
+												{
+													if (Pocker(game.listPlayers[i]))
+													{
+														ganadores.push_back(6);
+													}
+													else if (Full(game.listPlayers[i]))
+													{
+														ganadores.push_back(5);
+													}
+													else if (DoblePareja(game.listPlayers[i]))
+													{
+														ganadores.push_back(4);
+													}
+													else if (Trio(game.listPlayers[i]))
+													{
+														ganadores.push_back(3);
+													}
+													else if (Pareja(game.listPlayers[i]))
+													{
+														ganadores.push_back(2);
+													}
+													else
+													{
+														ganadores.push_back(0);
+													}
+												}
+											}
+
+											//Miramos si alguien gana por algo que no sea carta alta
+											int index = -1, puntos = 0;
+											for (int i =0; i<ganadores.size(); i++)
+											{
+												if (ganadores[i] > puntos)
+												{
+													puntos = ganadores[i];
+													index = i;
+												}
+											}
+
+											//Comprovamos que no sea carta alta
+											if (index == -1)
+											{
+												for (int i = 0; i < 4; i++)
+												{
+													if (CartaAlta(game.listPlayers[i]) && !game.listPlayers[i].passa)
+													{
+														index = i;
+													}
+												}
+											}
+
+											for (int i = 0; i < 4; i++)
+											{
+												game.listPlayers[i].passa = false;
+											}
+
+											game.listPlayers[index].efectivo += game.efectivoMesa;
+											game.efectivoMesa = 0;
+											game.apuestaActual = 10;
+
+											//Actualizamos marcadores
+											for (int i = 0; i < socketList.size(); i++)
+											{
+												sf::Packet packet;
+												packet << COINS << game.listPlayers[i].efectivo;
+												socketList[i]->send(packet);
+											}
+
+											//Nueva partida
+											for (int i = 0; i < socketList.size(); i++)
+											{
+												sf::Packet packet;
+												packet << NEW_GAME;
+												socketList[i]->send(packet);
+											}
+											//Otra baraja
+											for (int i = 0; i < socketList.size(); i++)
+											{
+												sf::Packet packet;
+												packet << MENSAJE << "GANADOR: "+ game.listPlayers[index].name;
+												socketList[i]->send(packet);
+											}
+											for (int i = 0; i < socketList.size(); i++)
+											{
+												sf::Packet packet;
+												packet << MENSAJE <<"CARGANDO PARTIDA. SERVIDOR OCUPADO";
+												socketList[i]->send(packet);
+											}
+											game.InitServer();
+											DarCartasJugadores(socketList);
+											PonerCartasTablero(socketList);
+											cartasMostrar = 3;
 
 
-								//	/*st = socketList[j]->send(msn.c_str(), msn.size() + 1);
-								//	if (st == sf::TcpSocket::Status::Done)
-								//	{
-								//		cout << "ENVIADO" << endl;
-								//	}*/
+										}
+										
+									}
 
-								//	//Pasamos de turno
-								//	/*jugadorActual++;
-								//	if (jugadorActual == 3)jugadorActual = 0;
-								//	msn = to_string(4);
-								//	socketList[jugadorActual]->send(msn.c_str(), msn.size() + 1);*/
+									if (!game.listPlayers[jugadorActual].passa)
+									{
+										pck.clear();
+										pck << TURNO;
+										socketStatus == socketList[jugadorActual]->send(pck);
+										if (socketStatus == sf::TcpSocket::Status::Disconnected)
+										{
+											DisconnectUser(socketList, &ss, jugadorActual);
+										}
+									}
 
-								//break;
-								//case 2:
-								//	msn.clear();
-								//	//Le restamos dicha cantidad al jugador
-								//	game.listPlayers[jugadorActual].efectivo -= game.apuestaActual;
-
-								//	//Sumamos la cantidad a la mesa
-								//	game.efectivoMesa += game.apuestaActual;
-
-								//	//Le indicamos que la tranasacion es correcta
-								//	msn = to_string(7) + to_string(game.apuestaActual);
-
-
-								//	/*st = socketList[j]->send(msn.c_str(), msn.size() + 1);
-								//	if (st == sf::TcpSocket::Status::Done)
-								//	{
-								//		cout << "ENVIADO" << endl;
-								//	}*/
-
-								//	//Pasamos de turno
-								//	/*jugadorActual++;
-								//	if (jugadorActual == 3)jugadorActual = 0;
-								//	msn = to_string(4);
-								//	socketList[jugadorActual]->send(msn.c_str(), msn.size() + 1);*/
-
-								//	break;
-								//case 3:
-								//	msn.clear();
-								//	//Le indicamos que la tranasacion es correcta
-								//	/*msn = to_string(8) + to_string(game.apuestaActual);
-								//	st = socketList[j]->send(msn.c_str(), msn.size() + 1);*/
-
-								//	//Pasamos de turno
-								//	/*jugadorActual++;
-								//	if (jugadorActual == 3)jugadorActual = 0;
-								//	msn = to_string(4);
-								//	st=socketList[jugadorActual]->send(msn.c_str(), msn.size() + 1);
-								//	if (st == sf::TcpSocket::Status::Done)
-								//	{
-								//		cout << "ENVIADO" << endl;
-								//	}*/
-								//	break;
-								//default:
-								//	break;
-								//}
-								//for (int i = 0; i < socketList.size(); i++)
-								//{
-								//	cout << "Mensaje: " + msn << endl;
-								//	st = socketList[i]->send(msn.c_str(), msn.size() + 1);
-
-								//	if (st == sf::TcpSocket::Status::Error)
-								//	{
-								//		cout << "Error al enviar" << endl;
-								//	}
-
-								//}
+								} while ((socketStatus == sf::TcpSocket::Status::Disconnected && socketList.size() > 0) || (game.listPlayers[jugadorActual].passa&& socketList.size() > 0));
 							}
 						}
 
